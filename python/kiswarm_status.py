@@ -60,7 +60,16 @@ class KISWARMMonitor:
         path = os.path.join(KISWARM_DIR, "qdrant_data")
         if not os.path.exists(path):
             return {"status": "✗ Not initialized", "color": "red", "size": "0B", "collections": 0}
-        size_bytes = sum(f.stat().st_size for f in Path(path).rglob("*") if f.is_file())
+        # Bounded traversal — stop counting at 500 files to avoid hanging on huge DBs
+        size_bytes = 0
+        try:
+            for i, f in enumerate(Path(path).rglob("*")):
+                if i > 500:
+                    break
+                if f.is_file():
+                    size_bytes += f.stat().st_size
+        except OSError:
+            size_bytes = 0
         size_mb = size_bytes / 1_048_576
         try:
             from qdrant_client import QdrantClient  # noqa: PLC0415
@@ -80,7 +89,7 @@ class KISWARMMonitor:
             return {"status": "✗ Offline", "color": "red"}
 
     def resources(self):
-        cpu   = psutil.cpu_percent(interval=1)
+        cpu   = psutil.cpu_percent(interval=None)  # non-blocking; returns cached value
         mem   = psutil.virtual_memory()
         try:
             disk = psutil.disk_usage(KISWARM_HOME)

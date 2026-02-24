@@ -47,14 +47,23 @@ state = {"start": datetime.datetime.now(), "requests": 0, "executions": 0}
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
-def load_config():
+def load_config() -> dict:
+    """Load governance config. Returns safe defaults on missing/malformed file.
+    Uses specific exceptions so real errors are never silently swallowed."""
+    _defaults = {"governance_mode": "active", "tool_injection_enabled": True, "audit_logging": True}
+    if not os.path.exists(CONFIG_FILE):
+        return _defaults
     try:
-        with open(CONFIG_FILE) as f:
-            return json.load(f)
-    except Exception:
-        return {"governance_mode": "active",
-                "tool_injection_enabled": True,
-                "audit_logging": True}
+        with open(CONFIG_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, dict):
+            raise ValueError(f"Expected JSON object, got {type(data).__name__}")
+        return data
+    except (json.JSONDecodeError, ValueError) as exc:
+        logger.warning("governance_config.json malformed: %s — using defaults", exc)
+    except OSError as exc:
+        logger.warning("Cannot read governance_config.json: %s — using defaults", exc)
+    return _defaults
 
 def audit(action: str, details: dict):
     cfg = load_config()

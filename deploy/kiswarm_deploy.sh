@@ -63,11 +63,18 @@ phase_venv() {
     # shellcheck disable=SC1091
     source "${VENV_PATH}/bin/activate"
     pip install --upgrade pip setuptools wheel -q 2>&1 | tail -1 >> "$LOG_FILE"
-    for pkg in ollama mem0 qdrant-client chromadb tiktoken openai \
-               rich flask requests numpy watchdog psutil flask-cors; do
-        log_info "Installing: $pkg"
-        pip install "$pkg" -q 2>&1 | tail -1 >> "$LOG_FILE" || true
-    done
+    # Use pinned requirements.txt if available (preferred)
+    REPO_DIR="$(dirname "$(readlink -f "$0")")/.."
+    if [ -f "${REPO_DIR}/requirements.txt" ]; then
+        log_info "Installing from requirements.txt (pinned versions)..."
+        pip install -r "${REPO_DIR}/requirements.txt" -q 2>&1 | tail -5 >> "$LOG_FILE"             || { log_error "requirements.txt install failed — check log"; exit 1; }
+    else
+        log_warning "requirements.txt not found, installing individually..."
+        for pkg in ollama mem0 qdrant-client rich flask requests numpy watchdog psutil flask-cors; do
+            log_info "Installing: $pkg"
+            pip install "$pkg" -q 2>&1 | tail -1 >> "$LOG_FILE"                 || log_warning "Could not install $pkg — continuing"
+        done
+    fi
     log_success "Virtual environment ready"
 }
 
