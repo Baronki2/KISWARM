@@ -34,3 +34,7 @@ typing-extensions>=4.8.0
 # ── Dev / Test dependencies ────────────────────────────────────────────────
 # Install with: pip install -r requirements-dev.txt
 
+# ── v2.1 Sentinel Bridge ───────────────────────────────────────────────────
+aiohttp>=3.9.0
+sentence-transformers>=2.7.0
+pytest-asyncio>=0.21.0

@@ -116,7 +116,10 @@ EOF
     grep -q "sys-nav" ~/.bashrc 2>/dev/null || {
         echo "alias sys-nav='bash ${KISWARM_HOME}/system_navigation.sh'"        >> ~/.bashrc
         echo "alias kiswarm-status='python3 ${KISWARM_HOME}/kiswarm_status.py'" >> ~/.bashrc
-        echo "alias kiswarm-health='bash ${KISWARM_HOME}/health_check.sh'"      >> ~/.bashrc
+        echo "alias kiswarm-health='bash ${KISWARM_HOME}/health_check.sh'
+        echo "alias sentinel-extract='bash ${KISWARM_HOME}/KISWARM/../scripts/sentinel_trigger.sh extract'" >> ~/.bashrc
+        echo "alias sentinel-search='bash ${KISWARM_HOME}/KISWARM/../scripts/sentinel_trigger.sh search'" >> ~/.bashrc
+        echo "alias sentinel-status='bash ${KISWARM_HOME}/KISWARM/../scripts/sentinel_trigger.sh status'" >> ~/.bashrc"      >> ~/.bashrc
     }
     log_success "Aliases added to ~/.bashrc"
 }
