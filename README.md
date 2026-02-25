@@ -5,7 +5,9 @@
 
 [![Version](https://img.shields.io/badge/version-1.1-blue.svg)](https://github.com/Baronki2/KISWARM)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![CI](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml/badge.svg)](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml)
 [![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg)](README.md)
+[![Tests](https://img.shields.io/badge/tests-100%2B-success.svg)](tests/)
 [![Ollama](https://img.shields.io/badge/powered%20by-Ollama-orange.svg)](https://ollama.com)
 
 ---
