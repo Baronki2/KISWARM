@@ -89,12 +89,20 @@ class KISWARMMonitor:
             return {"status": "✗ Offline", "color": "red"}
 
     def resources(self):
-        cpu   = psutil.cpu_percent(interval=None)  # non-blocking; returns cached value
+        """Return CPU, memory, and disk usage. All errors return safe defaults."""
+        cpu   = psutil.cpu_percent(interval=None)  # non-blocking cached value
         mem   = psutil.virtual_memory()
-        try:
-            disk = psutil.disk_usage(KISWARM_HOME)
-        except Exception:
-            disk = psutil.disk_usage("/")
+
+        # Disk — try KISWARM_HOME first, fall back to /, then a safe mock
+        disk_pct, disk_free = 0.0, "?"
+        for path in (KISWARM_HOME, "/"):
+            try:
+                d = psutil.disk_usage(path)
+                disk_pct  = d.percent
+                disk_free = f"{d.free // 1_073_741_824}GB"
+                break
+            except (FileNotFoundError, PermissionError, OSError):
+                continue
 
         def color(p):
             return "green" if p < 60 else ("yellow" if p < 80 else "red")
@@ -104,8 +112,7 @@ class KISWARMMonitor:
             "mem":  {"pct": mem.percent, "color": color(mem.percent),
                      "used": f"{mem.used // 1_073_741_824}GB",
                      "total": f"{mem.total // 1_073_741_824}GB"},
-            "disk": {"pct": disk.percent, "color": color(disk.percent),
-                     "free": f"{disk.free // 1_073_741_824}GB"},
+            "disk": {"pct": disk_pct, "color": color(disk_pct), "free": disk_free},
         }
 
     def governance_status(self):

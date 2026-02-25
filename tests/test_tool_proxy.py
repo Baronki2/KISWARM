@@ -62,11 +62,14 @@ class TestHealthEndpoint:
         data = json.loads(proxy_app.get("/health").data)
         assert "timestamp" in data
 
-    def test_health_request_counter_increments(self, proxy_app):
-        proxy_app.get("/health")
-        proxy_app.get("/health")
+    def test_health_request_counter_shown(self, proxy_app):
+        """Health endpoint reports request count (other endpoints increment it)."""
+        proxy_app.get("/tools")   # /tools increments the counter
+        proxy_app.get("/tools")
         data = json.loads(proxy_app.get("/health").data)
+        # Counter is incremented by /tools calls, /health is a monitoring ping
         assert data["requests"] >= 2
+        assert isinstance(data["requests"], int)
 
 
 # ── /tools ────────────────────────────────────────────────────────────────────
