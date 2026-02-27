@@ -1,4 +1,767 @@
-# 🌟 KISWARM v3.0 — Autonomous AI Swarm Governance Platform
+# 🌟 KISWARM v4.0 — Cognitive Industrial Evolution Core (CIEC)
+
+> **ETERNAL SWARM EVOLUTION SYSTEM** — Enterprise Military Standard Edition  
+> *Production-Hardened · Self-Healing · Industrial Cognitive AI · 430 Tests Passing*  
+> **Architect:** Baron Marco Paolo Ialongo
+
+[![Version](https://img.shields.io/badge/version-4.0--CIEC-blue.svg)](https://github.com/Baronki2/KISWARM)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![CI](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml/badge.svg)](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-430%20passing-success.svg)](tests/)
+[![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg)](README.md)
+[![Endpoints](https://img.shields.io/badge/REST%20endpoints-59-orange.svg)](python/sentinel/sentinel_api.py)
+[![Modules](https://img.shields.io/badge/AI%20modules-16-purple.svg)](python/sentinel/)
+
+---
+
+## 🎯 What is KISWARM?
+
+KISWARM is a **complete, self-managing AI governance + industrial cognitive platform** that combines:
+- **Autonomous AI Swarm** — 27+ local LLM models via Ollama with persistent vector memory
+- **CIEC Cognitive Industrial Core** — PLC semantic understanding, SCADA observation, digital twin physics, constraint safety, cross-project knowledge graph, and bounded constrained RL
+
+Running **100% locally**, zero cloud dependency. Pure engineering. No philosophy.
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                 KISWARM v4.0 COMPLETE ARCHITECTURE               │
+│                 CIEC + SWARM INTELLIGENCE PLATFORM               │
+└──────────────────────────────────────────────────────────────────┘
+                               │
+    ┌──────────────────────────┼──────────────────────────┐
+    ▼                          ▼                          ▼
+┌─────────┐             ┌──────────┐             ┌────────────────┐
+│ VM-1    │             │ VM-2     │             │ VM-3           │
+│ PLC +   │◄──OPC UA───►│ CIEC     │◄──REST API─►│ Digital Twin   │
+│ SCADA   │             │ Core     │             │ Physics Engine │
+│ Runtime │             │ (Port    │             │ Simulation     │
+└─────────┘             │ 11436)   │             └────────────────┘
+                        └──────────┘
+                               │
+         ┌─────────────────────┼─────────────────────┐
+         ▼                     ▼                     ▼
+   ┌──────────┐          ┌──────────┐          ┌──────────┐
+   │ Ollama   │          │ Qdrant   │          │ Tool     │
+   │ :11434   │          │ Memory   │          │ Proxy    │
+   │ 27+      │          │ Vector   │          │ :11435   │
+   │ Models   │          │ DB       │          │ Flask    │
+   └──────────┘          └──────────┘          └──────────┘
+```
+
+**Core Design Principle:**
+```
+PLC  = deterministic reflex layer   (never touched by AI)
+CIEC = adaptive cognition layer     (sits above PLC, observes, suggests)
+Never invert that hierarchy.
+```
+
+---
+
+## 🆕 v4.0 CIEC — What's New (6 New Modules, 21 New Endpoints, 120 New Tests)
+
+| Module | Name | Purpose |
+|---|---|---|
+| **11** | PLC Semantic Parser | IEC 61131-3 ST → CIR + DSG + PID/interlock/watchdog |
+| **12** | SCADA/OPC Observer | Real-time tag streaming + SQL historian + state vector |
+| **13** | Digital Twin Physics | Thermal · Pump · Battery · Power · Fault injection |
+| **14** | Rule Constraint Engine | Absolute safety layer — overrides all RL/fuzzy output |
+| **15** | Knowledge Graph | Cross-project PID configs · failure signatures · federated sync |
+| **16** | Industrial Actor-Critic RL | Constrained bounded parameter-shift optimization |
+
+---
+
+## ✨ Feature Matrix — All Versions
+
+| Feature | v1.1 | v2.1 | v2.2 | v3.0 | **v4.0** |
+|---|:---:|:---:|:---:|:---:|:---:|
+| Persistent Vector Memory (Qdrant) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Tool Injection Proxy (:11435) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Monitoring Dashboard | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Self-Healing (Systemd) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Governance + Audit Logging | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 27+ Ollama Models | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Test Coverage | 111 | 148 | 205 | 310 | **430** |
+| REST API Endpoints | — | 5 | 17 | 29 | **59** |
+| Sentinel Bridge (AKE) | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Swarm Debate Engine | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Semantic Conflict Detection | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Knowledge Decay Engine | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Cryptographic Knowledge Ledger | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Adversarial Prompt Firewall | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Fuzzy Membership Auto-Tuner | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Constrained RL (CMDP) | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Digital Twin Mutation Pipeline | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Federated Adaptive Mesh | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **PLC Semantic Parser** | ❌ | ❌ | ❌ | ❌ | ✅ **NEW** |
+| **SCADA/OPC Observer** | ❌ | ❌ | ❌ | ❌ | ✅ **NEW** |
+| **Physics Twin Engine** | ❌ | ❌ | ❌ | ❌ | ✅ **NEW** |
+| **Rule Constraint Engine** | ❌ | ❌ | ❌ | ❌ | ✅ **NEW** |
+| **Cross-Project Knowledge Graph** | ❌ | ❌ | ❌ | ❌ | ✅ **NEW** |
+| **Industrial Actor-Critic RL** | ❌ | ❌ | ❌ | ❌ | ✅ **NEW** |
+
+---
+
+## 🚀 Quick Start — 3 Commands
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Baronki2/KISWARM.git && cd KISWARM
+
+# 2. Run the 10-phase automated deployment (15–20 minutes)
+chmod +x deploy/kiswarm_deploy.sh && ./deploy/kiswarm_deploy.sh
+
+# 3. Activate and verify
+source ~/.bashrc && kiswarm-health && sys-nav
+```
+
+**System is fully operational when you see:** `Overall Health: 90%+` ✅
+
+---
+
+## ⚙️ v4.0 CIEC — SIX COGNITIVE INDUSTRIAL MODULES
+
+> *"You are not building AI that controls a plant. You are building a Cognitive Overlay Engine sitting on top of deterministic PLC infrastructure."*
+
+---
+
+### Module 11 — PLC Semantic Parser (`plc_parser.py`)
+
+Understands existing PLC logic without touching it. Parses **IEC 61131-3 Structured Text** into a structured semantic representation.
+
+**Three-stage pipeline:**
+
+```
+Stage 1 — Tokenize
+  Raw ST source → token stream
+  Handles: PROGRAM/END_PROGRAM, VAR blocks, IF/ELSE/END_IF,
+           function calls, assignments, expressions
+
+Stage 2 — Build CIR (Canonical Intermediate Representation)
+  Token stream → CIR Nodes
+  
+  CIRNode {
+    node_id:    "N0012"
+    node_type:  IF | ASSIGN | FB_CALL | COMPARE | TON | ...
+    inputs:     [signal names read]
+    outputs:    [signals written]
+    safety_flag: True if condition involves E-STOP/FAULT/etc.
+    params:     {condition, rhs, ...}
+  }
+
+Stage 3 — Build DSG (Directed Signal Graph)
+  CIR nodes → directed edges (data flow)
+  Feedback detection: output of node A → input of node A (control loop)
+```
+
+**Pattern detectors:**
+
+| Pattern | What it finds |
+|---|---|
+| PID blocks | `PID(SP:=..., PV:=..., KP:=..., KI:=..., KD:=...)` |
+| Interlocks | IF-conditions referencing ESTOP/FAULT/SAFETY signals |
+| Watchdogs | WD_* named instances, TON/WD timers |
+| Safety flags | BOOL variables with E-STOP/SAFETY/ALARM in name |
+
+```python
+parser = PLCSemanticParser()
+result = parser.parse(st_source_code, "PumpControl")
+
+result.pid_blocks[0].kp          # 1.2
+result.interlocks[0].condition   # "ESTOP OR fault_flag"
+result.watchdogs[0].type         # "watchdog_timer"
+result.source_hash               # SHA-256[:16] for KG linking
+```
+
+**REST API:**
+```bash
+curl -X POST http://localhost:11436/plc/parse \
+  -d '{"source": "PROGRAM PumpCtrl\n...\nEND_PROGRAM", "program_name": "PumpCtrl"}'
+
+curl http://localhost:11436/plc/stats
+```
+
+---
+
+### Module 12 — SCADA/OPC/SQL Observer (`scada_observer.py`)
+
+Observes live plant state without binding to RS-485 drivers.
+
+**Data ingestion:**
+
+```
+OPC UA real-time:   push_reading("temperature", 45.2, timestamp)
+OPC snapshot:       push_snapshot({"pressure": 3.0, "flow": 12.5})
+SQL historian:      ingest_history([{"tag": "t1", "value": 1.0, "timestamp": ...}])
+```
+
+**Feature extraction (12 features per tag):**
+
+```
+TagFeatures {
+  mean              overshoot_ratio
+  variance          settling_time_estimate
+  min / max         thermal_drift
+  switching_freq    deadband_crossings
+  actuator_cycles   utilization_rate
+  derivative        peak_load
+}
+```
+
+**State vector builder:**
+
+```
+S(t) = [timestamp, alarm_count, feat₁...feat₁₂, feat₁...feat₁₂, ...]
+                                ←───── 12 per tag ────────────────────→
+```
+
+**REST API:**
+```bash
+curl -X POST http://localhost:11436/scada/push -d '{"tag":"pressure","value":3.2}'
+curl -X POST http://localhost:11436/scada/ingest-history -d '{"records":[...]}'
+curl http://localhost:11436/scada/state
+curl "http://localhost:11436/scada/anomalies?threshold=3.0"
+```
+
+---
+
+### Module 13 — Digital Twin Physics Engine (`physics_twin.py`)
+
+Simulates plant physics **without touching real actuators**. Mutation candidates are validated here before any deployment.
+
+**Four physics modules:**
+
+```
+ThermalState:
+  dT/dt = (Q_in − k_loss × (T − T_env)) / C_thermal
+  T_{t+1} = T_t + Δt × dT/dt
+
+PumpState (Bernoulli):
+  flow = k_flow × √(ΔP)
+  cavitation = NPSH_available < NPSH_required
+
+BatteryState (Hybrid ECM):
+  SOC_{t+1} = SOC_t + (I_charge − I_discharge) / Capacity
+  V = OCV(SOC) − I × R_internal
+  Thermal: dT/dt = (I²R − cooling) / C
+
+PowerRoutingState:
+  P_mismatch = Σloads − Σgeneration
+  Δf ≈ P_mismatch / (2 × H_inertia)
+```
+
+**Fault injection engine:**
+
+| Fault Category | Examples |
+|---|---|
+| Sensor faults | stuck-at · drift · noise spike |
+| Actuator faults | delayed response · partial fail · full fail |
+| Physical faults | heat exchanger drop · cavitation · battery resistance rise |
+
+**Mutation evaluation pipeline:**
+```python
+twin = PhysicsTwin()
+promote, metrics = twin.evaluate_mutation(
+    {"q_in": 2200, "dp": 2.5},
+    n_runs=5   # Monte Carlo over n independent episodes
+)
+# promote = True only if: zero hard violations + improved survival score
+```
+
+**REST API:**
+```bash
+curl -X POST http://localhost:11436/ciec-twin/run \
+  -d '{"steps":100,"dt":0.1,"inject_faults":true}'
+curl -X POST http://localhost:11436/ciec-twin/evaluate \
+  -d '{"params":{"q_in":2200,"dp":2.5},"n_runs":5}'
+```
+
+---
+
+### Module 14 — Rule Constraint Engine (`rule_engine.py`)
+
+**Absolute safety layer.** Sits between RL output and the PLC parameter space. Hard constraints block actions entirely. Soft constraints penalize the RL reward.
+
+**Built-in constraints (10 default):**
+
+| Constraint | Type | Condition | Penalty |
+|---|---|---|---|
+| `OVERPRESSURE_BLOCK` | Hard | pressure > 8 bar | 10⁶ |
+| `BATTERY_CRITICAL_BLOCK` | Hard | SOC < 15% | 10⁶ |
+| `OVERTEMP_BLOCK` | Hard | temperature > 95°C | 10⁶ |
+| `FREQUENCY_DEVIATION_BLOCK` | Hard | |f − 50Hz| > 2.5 | 10⁶ |
+| `ACTUATOR_WEAR_BLOCK` | Hard | wear_index > 0.95 | 10⁶ |
+| `PID_KP_BOUND` | Hard | |Δkp| > 5% | 10⁶ |
+| `PID_KI_BOUND` | Hard | |Δki| > 5% | 10⁶ |
+| `HIGH_PRESSURE_WARNING` | Soft | pressure > 6.5 bar | 500 |
+| `RELAY_OVERCYCLING_PENALTY` | Soft | switching > 2 Hz | 200 |
+| `BATTERY_LOW_WARNING` | Soft | SOC < 25% | 300 |
+
+**Action clamping** — even if constraint allows, action is bounded:
+```
+delta_kp, delta_ki, delta_kd  ∈ [−5%, +5%]
+delta_threshold                ∈ [−10%, +10%]
+delta_schedule                 ∈ [−20%, +20%]
+delta_energy_w                 ∈ [−15%, +15%]
+```
+
+```python
+engine = RuleConstraintEngine()
+result = engine.validate(state, action)
+# result.allowed         True/False
+# result.hard_violations ["OVERPRESSURE_BLOCK", ...]
+# result.total_penalty   1000000.0
+# result.action_after    clamped action dict
+# result.check_time_us   < 100μs typical
+```
+
+**REST API:**
+```bash
+curl -X POST http://localhost:11436/constraints/validate \
+  -d '{"state":{"pressure":3.2,"battery_soc":0.85},"action":{"delta_kp":0.02}}'
+curl -X POST http://localhost:11436/constraints/check-state \
+  -d '{"state":{"pressure":9.5}}'   # → {"safe": false}
+curl http://localhost:11436/constraints/list
+curl http://localhost:11436/constraints/stats
+```
+
+---
+
+### Module 15 — Cross-Project Knowledge Graph (`knowledge_graph.py`)
+
+The **real differentiator.** Learns across multiple PLC versions, sites, and years. Detects: *"You solved this pump cavitation 4 times in 8 years. Here is the unified design block."*
+
+**Node types:**
+
+| Kind | Contains |
+|---|---|
+| `PIDConfig` | Proven Kp/Ki/Kd + plant type + performance history |
+| `FailureSig` | Symptom list + root cause + fix template |
+| `OptTemplate` | Problem class + solution + measured gain |
+| `DesignBlock` | Reusable functional block pattern |
+| `PlantProfile` | Site-specific plant characteristics |
+
+**Similarity engine:**
+```
+cosine_sim(v₁, v₂) = (v₁·v₂) / (|v₁|×|v₂|)
+jaccard_sim(t₁, t₂) = |t₁∩t₂| / |t₁∪t₂|   (tag overlap)
+combined = 0.7 × cosine + 0.3 × jaccard
+```
+
+**Federated sync (no raw telemetry ever transmitted):**
+```python
+# Site A exports signed diff bundle
+bundle = site_a_kg.export_diff_bundle(since_timestamp=last_sync)
+# bundle_sig = SHA-256(site_id + timestamp + nodes)[:24]
+
+# Site B imports and verifies
+imported = site_b_kg.import_diff_bundle(bundle)
+# 0 if signature fails → never imports unsigned knowledge
+```
+
+```python
+kg = KnowledgeGraph(site_id="PLANT_MUNICH")
+node = kg.add_pid_config("Pump-A PID", kp=1.2, ki=0.3, kd=0.05, ...)
+matches = kg.find_by_symptoms(["pressure_drop", "high_vibration"])
+patterns = kg.detect_recurring_patterns(min_occurrences=2)
+# patterns[0] → {"symptom_set": ["pressure_drop"], "occurrences": 4, "sites": [...]}
+```
+
+**REST API:**
+```bash
+curl -X POST http://localhost:11436/kg/add-pid \
+  -d '{"title":"Pump PID","kp":1.2,"ki":0.3,"kd":0.05,"plant_type":"pump"}'
+curl -X POST http://localhost:11436/kg/find-by-symptoms \
+  -d '{"symptoms":["pressure_drop","vibration"]}'
+curl http://localhost:11436/kg/recurring-patterns?min_occurrences=2
+curl http://localhost:11436/kg/export-bundle
+curl -X POST http://localhost:11436/kg/import-bundle -d '{"bundle":{...}}'
+```
+
+---
+
+### Module 16 — Industrial Actor-Critic RL (`actor_critic.py`)
+
+**Constrained Actor-Critic with Lagrangian Penalty** — specifically designed for industrial parameter mutation, not generic RL.
+
+**Architecture:**
+```
+State S_t ∈ ℝ^N (150–600 features)
+   ↓
+SharedEncoder: Dense(64,ReLU) → Dense(64,ReLU) → Z_t (64-dim)
+   ↙                                              ↘
+ActorHead                                     CriticHead
+μ_i = tanh(W_i × Z_t)                        V(s_t) = Dense(32,ReLU) → scalar
+σ_i = softplus(W'_i × Z_t)
+a_i = μ_i + σ_i × ε,  ε~N(0,1)
+a_i = clip(a_i, PLC_BOUNDS[name])
+```
+
+**Action space (PLC-safe parameter shifts ONLY):**
+```python
+PLC_BOUNDS = {
+    "delta_kp":        (-0.05, +0.05),   # PID proportional ±5%
+    "delta_ki":        (-0.05, +0.05),   # PID integral ±5%
+    "delta_kd":        (-0.05, +0.05),   # PID derivative ±5%
+    "delta_threshold": (-0.10, +0.10),   # Threshold ±10%
+    "delta_schedule":  (-0.20, +0.20),   # Schedule shift ±20%
+    "delta_energy_w":  (-0.15, +0.15),   # Energy routing ±15%
+}
+```
+
+**Reward function:**
+```
+R = α × stability_score   (α=0.40)   = 1/(1+variance)
+  + β × efficiency_score  (β=0.30)   = 1 − energy_waste
+  − γ × actuator_cycles   (γ=0.15)
+  − δ × boundary_violation (δ=0.10)
+  − ε × oscillation        (ε=0.05)  = |d(output)/dt|
+```
+
+**Constrained update (Lagrangian):**
+```
+L_total = L_policy + c₁×L_value − c₂×Entropy + Σ λᵢ×ConstraintViolation_i
+
+λᵢ_{t+1} = max(0, λᵢ_t + η_λ × (E[Cᵢ] − d))
+```
+λ rises when constraints violated → policy learns to avoid them.
+
+**Action shielding:** Every action passes through `RuleConstraintEngine` before application. If blocked → zero-action (no parameter change) is used instead. Shield rate tracked in stats.
+
+```python
+ac = IndustrialActorCritic(state_dim=32)
+action, info = ac.select_action(state_vector, shield=rule_engine)
+# action = {"delta_kp": 0.021, "delta_ki": -0.008, ...}
+# info   = {"shielded": False, "step": 142}
+```
+
+**REST API:**
+```bash
+curl -X POST http://localhost:11436/ciec-rl/act \
+  -d '{"state":[0.1,0.2,...32 floats...],"shield":true}'
+curl -X POST http://localhost:11436/ciec-rl/observe \
+  -d '{"state":[...],"action":[...],"reward":0.8,"cost":0.0}'
+curl -X POST http://localhost:11436/ciec-rl/update -d '{"batch_size":64}'
+curl http://localhost:11436/ciec-rl/stats
+```
+
+---
+
+## 🔗 CIEC Full Cycle — End-to-End Pipeline
+
+```
+1. Parse PLC logic
+   POST /plc/parse  →  PID params, interlock graph, watchdog timers
+   Extracted PID configs stored in Knowledge Graph via /kg/add-pid
+
+2. Observe plant in real-time
+   POST /scada/push  →  tag readings every 50–200ms
+   GET  /scada/state →  S(t) = plant state vector (input to RL)
+
+3. Check safety before any action
+   POST /constraints/validate  →  allowed? penalty? clamped action?
+   POST /constraints/check-state → is current state safe?
+
+4. RL selects bounded parameter shift
+   POST /ciec-rl/act  →  delta_kp=+0.02, delta_ki=-0.01, ...
+   (automatically shielded through constraint engine)
+
+5. Validate mutation in digital twin BEFORE deploying
+   POST /ciec-twin/evaluate  →  promoted? survival_score? fault_survival?
+
+6. If promoted → apply to PLC parameter space via OPC UA
+
+7. Record outcome in Knowledge Graph
+   POST /kg/add-pid  (if promoted)
+   → failure signature if rejected
+
+8. Sync knowledge to other sites
+   GET  /kg/export-bundle → signed diff bundle
+   POST /kg/import-bundle (at remote site) → cross-site learning
+
+9. Feed transition to RL buffer and train
+   POST /ciec-rl/observe  →  reward computed from stability+efficiency
+   POST /ciec-rl/update   →  Lagrangian actor-critic gradient step
+```
+
+---
+
+## 📡 Complete REST API Reference (59 Endpoints)
+
+### v2.1 — Sentinel Intelligence (5 endpoints)
+```
+POST /sentinel/extract          Trigger autonomous knowledge extraction
+POST /sentinel/debate           Swarm Debate for conflicting sources
+GET  /sentinel/search           Search swarm knowledge memory
+GET  /sentinel/status           Engine health + statistics
+GET  /health                    Service ping
+```
+
+### v2.2 — Advanced Intelligence Modules (12 endpoints)
+```
+POST /firewall/scan             Adversarial content scan
+GET  /decay/scan                Knowledge decay scan
+GET  /decay/record/<hash_id>    Single entry confidence
+POST /decay/revalidate          Reset after revalidation
+GET  /ledger/status             Merkle root + entry count
+GET  /ledger/verify             Full tamper detection
+GET  /ledger/proof/<hash_id>    Merkle inclusion proof
+POST /conflict/analyze          Contradiction cluster analysis
+POST /conflict/quick            Two-text cosine similarity check
+GET  /tracker/leaderboard       Model ELO + reliability ranking
+GET  /tracker/model/<n>         Per-model statistics
+POST /tracker/validate          Post-hoc validation
+POST /guard/assess              Retrieval trust assessment
+```
+
+### v3.0 — Industrial AI (13 endpoints)
+```
+POST /fuzzy/classify            Classify input using fuzzy sets
+POST /fuzzy/update              Update fuzzy output with feedback
+POST /fuzzy/tune                Trigger auto-tuning step (gradient/evolutionary)
+GET  /fuzzy/stats               Membership function parameters
+
+POST /rl/act                    Get RL action (CMDP with safety layer)
+POST /rl/learn                  Constrained policy + value update
+GET  /rl/stats                  RL training statistics
+
+POST /twin/evaluate             Evaluate mutation candidate (Monte Carlo EVT)
+GET  /twin/stats                Twin simulation statistics
+
+POST /mesh/register             Register node in federated mesh
+POST /mesh/share                Share parameter delta (Byzantine-protected)
+GET  /mesh/leaderboard          Trust-weighted node ranking
+GET  /mesh/stats                Global mesh statistics
+```
+
+### v4.0 — CIEC Cognitive Industrial Core (28 endpoints) 🆕
+```
+POST /plc/parse                 Parse IEC 61131-3 ST → CIR + DSG
+GET  /plc/stats                 Parser cache statistics
+
+POST /scada/push                Ingest real-time OPC tag readings
+POST /scada/ingest-history      Batch ingest SQL historian records
+GET  /scada/state               Current plant state vector S(t)
+GET  /scada/anomalies           Tags with anomalous z-scores
+GET  /scada/stats               Observer statistics
+
+POST /ciec-twin/run             Run physics simulation episode
+POST /ciec-twin/evaluate        Evaluate mutation candidate
+GET  /ciec-twin/stats           Twin run statistics
+
+POST /constraints/validate      Validate action against all constraints
+POST /constraints/check-state   Quick hard-constraint state check
+GET  /constraints/list          All registered constraints
+GET  /constraints/violations    Recent violation audit log
+GET  /constraints/stats         Block rate + violation categories
+
+POST /kg/add-pid                Store proven PID configuration
+POST /kg/add-failure            Record failure signature + fix template
+POST /kg/find-similar           Vector similarity search
+POST /kg/find-by-symptoms       Match failure signatures to symptoms
+GET  /kg/recurring-patterns     Cross-project recurring problem detection
+GET  /kg/export-bundle          Signed knowledge diff for federated sync
+POST /kg/import-bundle          Import verified knowledge from remote site
+GET  /kg/nodes                  List knowledge graph nodes
+GET  /kg/stats                  Graph statistics
+
+POST /ciec-rl/act               Constrained bounded parameter-shift action
+POST /ciec-rl/observe           Feed transition to replay buffer
+POST /ciec-rl/update            Lagrangian actor-critic gradient update
+GET  /ciec-rl/stats             RL statistics + PLC bounds
+```
+
+---
+
+## 📦 Complete Repository Structure
+
+```
+KISWARM/
+│
+├── 📁 deploy/
+│   └── kiswarm_deploy.sh           # 10-phase automated deployment
+│
+├── 📁 scripts/
+│   ├── start_all_services.sh       # Master service orchestrator
+│   ├── sentinel_trigger.sh         # Sentinel CLI + CKM integration
+│   ├── cleanup_old_backups.sh      # 30-day backup rotation
+│   ├── health_check.sh             # 40+ diagnostic checks
+│   ├── system_navigation.sh        # sys-nav central hub
+│   └── setup_cron.sh               # One-click cron automation
+│
+├── 📁 python/
+│   ├── kiswarm_status.py           # Real-time Rich monitoring dashboard
+│   ├── tool_proxy.py               # Tool injection proxy (Flask, :11435)
+│   └── sentinel/
+│       ├── __init__.py
+│       │
+│       │  ── v2.1 SENTINEL BRIDGE ──
+│       ├── sentinel_bridge.py      # AKE engine: 4 scouts + injector
+│       ├── swarm_debate.py         # Multi-model conflict resolution
+│       │
+│       │  ── v2.2 INTELLIGENCE MODULES ──
+│       ├── semantic_conflict.py    # Cosine similarity contradiction clustering
+│       ├── knowledge_decay.py      # Half-life decay engine (6 categories)
+│       ├── model_tracker.py        # ELO + reliability tracker
+│       ├── crypto_ledger.py        # SHA-256 Merkle ledger
+│       ├── retrieval_guard.py      # 4-layer retrieval trust assessment
+│       ├── prompt_firewall.py      # Adversarial content firewall
+│       │
+│       │  ── v3.0 INDUSTRIAL AI ──
+│       ├── fuzzy_tuner.py          # Gaussian/Bell fuzzy + Lyapunov gate
+│       ├── constrained_rl.py       # CMDP: masking + Lagrangian + Shielded
+│       ├── digital_twin.py         # Monte Carlo mutation + EVT tail test
+│       ├── federated_mesh.py       # Multi-Krum Byzantine mesh
+│       │
+│       │  ── v4.0 CIEC CORE ──
+│       ├── plc_parser.py           # IEC 61131-3 ST → CIR + DSG (493L)
+│       ├── scada_observer.py       # OPC/SQL observer + 12-feature extraction (587L)
+│       ├── physics_twin.py         # Thermal+Pump+Battery+Power physics (693L)
+│       ├── rule_engine.py          # Absolute constraint safety layer (485L)
+│       ├── knowledge_graph.py      # Cross-project KG + federated sync (587L)
+│       ├── actor_critic.py         # Constrained Actor-Critic RL (693L)
+│       │
+│       └── sentinel_api.py         # Flask REST API — ALL 59 endpoints
+│
+├── 📁 tests/
+│   ├── conftest.py
+│   ├── test_tool_proxy.py          # 50 tests
+│   ├── test_kiswarm_status.py      # 19 tests
+│   ├── test_sentinel.py            # 37 tests — v2.1 AKE
+│   ├── test_advanced_modules.py    # 99 tests — v2.2 (Modules 1-6)
+│   ├── test_v3_modules.py          # 105 tests — v3.0 (Modules 7-10)
+│   └── test_ciec_modules.py        # 120 tests — v4.0 (Modules 11-16) 🆕
+│
+├── 📁 config/
+│   ├── governance_config.json
+│   └── kiswarm.service
+│
+├── .github/workflows/ci.yml
+├── requirements.txt
+├── requirements-dev.txt
+└── README.md
+```
+
+---
+
+## 🧪 Test Coverage — 430 Tests, All Passing
+
+```
+tests/test_ciec_modules.py      120 tests  ← v4.0 CIEC (Modules 11-16)
+tests/test_v3_modules.py        105 tests  ← v3.0 (Modules 7-10)
+tests/test_advanced_modules.py   99 tests  ← v2.2 (Modules 1-6)
+tests/test_sentinel.py           37 tests  ← v2.1 AKE engine
+tests/test_tool_proxy.py         50 tests
+tests/test_kiswarm_status.py     19 tests
+──────────────────────────────────────────
+TOTAL                            430 tests  ✅ ALL PASSING
+```
+
+```bash
+# Run full suite
+pip install -r requirements-dev.txt
+pytest tests/ --ignore=tests/test_deploy.py -v
+
+# Run only CIEC tests
+pytest tests/test_ciec_modules.py -v
+
+# Run integration tests
+pytest tests/test_ciec_modules.py::TestCIECPipeline -v
+```
+
+---
+
+## 🔒 Security & Privacy
+
+| Property | Status |
+|---|---|
+| Data leaves the machine | ❌ Never — 100% local |
+| Cloud APIs after setup | ❌ None required |
+| AI directly binds RS-485 | ❌ Never — OPC UA intermediate API only |
+| Runs as root | ❌ Never — regular user only |
+| PLC parameters mutated directly | ❌ Always via OPC UA bounded write |
+| Raw actuator commands from AI | ❌ Parameter shifts only (±5% max) |
+| Audit logging | ✅ All operations recorded |
+| Cryptographic knowledge signing | ✅ SHA-256 + Merkle tree |
+| Adversarial content firewall | ✅ 3-layer pattern + statistical |
+| Constraint engine override | ✅ Hard constraints cannot be bypassed |
+
+---
+
+## ⚙️ System Requirements
+
+| Component | Minimum | Recommended |
+|---|---|---|
+| OS | Ubuntu 20.04+ / Debian 12+ | Ubuntu 22.04 LTS |
+| RAM | 8 GB | 16 GB+ |
+| Disk | 20 GB free | 50 GB+ SSD |
+| Python | 3.8+ | 3.11+ |
+| GPU | Optional | NVIDIA CUDA (2× speed) |
+| Network (after setup) | Not required | Air-gapped OK |
+
+---
+
+## 🔧 Version History
+
+### v4.0 — 2026-02-27 *(Current)*
+- ✅ **Module 11: PLC Semantic Parser** — IEC 61131-3 tokenizer, CIR/DSG builder, PID/interlock/watchdog detection
+- ✅ **Module 12: SCADA/OPC/SQL Observer** — 12-feature time-series extraction, PlantStateVector builder
+- ✅ **Module 13: Digital Twin Physics Engine** — Thermal/Pump/Battery/Power physics, fault injection, mutation evaluation
+- ✅ **Module 14: Rule Constraint Engine** — Hard+soft constraints, Lagrangian shielding, < 100μs validation
+- ✅ **Module 15: Cross-Project Knowledge Graph** — PID configs, failure signatures, cosine+Jaccard similarity, federated sync
+- ✅ **Module 16: Industrial Actor-Critic RL** — Constrained bounded parameter shifts, Lagrangian multipliers, action shielding
+- ✅ **59 REST API endpoints** — 28 new CIEC endpoints
+- ✅ **430 tests passing** — 120 new CIEC tests
+
+### v3.0 — 2026-02-26
+- ✅ Module 7: Fuzzy Membership Auto-Tuner (Lyapunov stability gate)
+- ✅ Module 8: Constrained RL Engine (CMDP, Lagrangian, Shielded RL)
+- ✅ Module 9: Digital Twin Mutation Pipeline (Monte Carlo, EVT tail test)
+- ✅ Module 10: Federated Adaptive Mesh (Multi-Krum Byzantine tolerance)
+- ✅ 29 REST endpoints | 310 tests
+
+### v2.2-EMS — 2026-02-25
+- ✅ Modules 1–6: Semantic Conflict · Decay · Tracker · Ledger · Guard · Firewall
+- ✅ 17 REST endpoints | 205 tests
+
+### v2.1-EMS — 2026-02-25
+- ✅ Sentinel Bridge: AKE + 4 Scouts + Swarm Debate
+- ✅ 5 REST endpoints | 148 tests
+
+### v1.1 — 2026-02-22
+- ✅ Portable $HOME paths, trap handlers, Qdrant VectorParams, backup rotation
+- ✅ 111 tests
+
+### v1.0 — 2026-02-22
+- ✅ Initial production release, 10-phase deployment
+
+---
+
+## 📄 License
+
+MIT License — Free to use, modify, and distribute globally.
+
+---
+
+## 🌟 Credits
+
+**Architect:** Baron Marco Paolo Ialongo  
+**Version:** 4.0-CIEC (Cognitive Industrial Evolution Core)  
+**Repository:** https://github.com/Baronki2/KISWARM  
+**Tests:** 430 passing | **Endpoints:** 59 | **Modules:** 16
+
+*"The Swarm sees all. The Swarm knows all. The Swarm evolves eternally."* 🌌
+
+---
+---
+
+# PRESERVED: Previous Version Documentation
+
+> The sections below preserve the complete documentation from v1.1 through v3.0.
+> All original descriptions, algorithms, and API references remain intact.
+
+---
+
+ — Autonomous AI Swarm Governance Platform
 
 > **ETERNAL SWARM EVOLUTION SYSTEM** — Enterprise Military Standard Edition  
 > *Production-Hardened · Self-Healing · Sentinel-Class Intelligence · 310 Tests Passing*  

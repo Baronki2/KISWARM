@@ -731,6 +731,325 @@ def mesh_stats():
     return jsonify({"status": "success", "mesh": _mesh.get_stats()})
 
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CIEC v4.0 — LAZY MODULE SINGLETONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _lazy(attr, factory):
+    if not hasattr(app, attr):
+        setattr(app, attr, factory())
+    return getattr(app, attr)
+
+def _plc():
+    from sentinel.plc_parser import PLCSemanticParser
+    return _lazy("_plc_parser", PLCSemanticParser)
+
+def _scada():
+    from sentinel.scada_observer import SCADAObserver
+    return _lazy("_scada_obs", SCADAObserver)
+
+def _ptwin():
+    from sentinel.physics_twin import PhysicsTwin
+    return _lazy("_physics_twin", PhysicsTwin)
+
+def _rules():
+    from sentinel.rule_engine import RuleConstraintEngine
+    return _lazy("_rule_eng", RuleConstraintEngine)
+
+def _kg():
+    from sentinel.knowledge_graph import KnowledgeGraph
+    return _lazy("_know_graph", KnowledgeGraph)
+
+def _acrl():
+    from sentinel.actor_critic import IndustrialActorCritic
+    return _lazy("_actor_crit", lambda: IndustrialActorCritic(state_dim=32))
+
+
+# ─── MODULE 11: PLC SEMANTIC PARSER ──────────────────────────────────────────
+
+@app.route("/plc/parse", methods=["POST"])
+def plc_parse():
+    """Parse IEC 61131-3 ST source into CIR + DSG + PID/interlock/watchdog.
+    Body: {"source": "<ST code>", "program_name": "optional"}
+    """
+    d = request.get_json(force=True) or {}
+    if not d.get("source"):
+        return jsonify({"status": "error", "error": "source required"}), 400
+    result = _plc().parse(d["source"], d.get("program_name", "UNKNOWN"))
+    return jsonify({"status": "success", "result": result.to_dict()})
+
+@app.route("/plc/stats")
+def plc_stats():
+    """PLC parser cache and performance statistics."""
+    return jsonify({"status": "success", "stats": _plc().get_stats()})
+
+
+# ─── MODULE 12: SCADA / OPC / SQL OBSERVATION LAYER ──────────────────────────
+
+@app.route("/scada/push", methods=["POST"])
+def scada_push():
+    """Ingest real-time tag readings (OPC UA callback).
+    Body: {"tag": "temperature", "value": 45.2}
+      OR  {"snapshot": {"tag1": v1, "tag2": v2}}
+    """
+    d = request.get_json(force=True) or {}
+    if "snapshot" in d:
+        _scada().push_snapshot(d["snapshot"])
+        return jsonify({"status": "success", "ingested": len(d["snapshot"])})
+    tag, value = d.get("tag"), d.get("value")
+    if tag is None or value is None:
+        return jsonify({"status": "error", "error": "tag and value required"}), 400
+    _scada().push_reading(tag, float(value))
+    return jsonify({"status": "success", "ingested": 1})
+
+@app.route("/scada/ingest-history", methods=["POST"])
+def scada_ingest_history():
+    """Batch ingest SQL historian records.
+    Body: {"records": [{"tag": "t1", "value": 1.0, "timestamp": 1700000000.0}]}
+    """
+    d = request.get_json(force=True) or {}
+    records = d.get("records", [])
+    if not records:
+        return jsonify({"status": "error", "error": "records array required"}), 400
+    count = _scada().ingest_history(records)
+    return jsonify({"status": "success", "ingested": count})
+
+@app.route("/scada/state")
+def scada_state():
+    """Build and return current plant state vector S(t)."""
+    sv = _scada().build_state_vector()
+    return jsonify({"status": "success", "state": sv.to_dict()})
+
+@app.route("/scada/anomalies")
+def scada_anomalies():
+    """Return tags showing anomalous values (z-score based)."""
+    threshold = float(request.args.get("threshold", 3.0))
+    anomalies = _scada().get_anomalies(std_threshold=threshold)
+    return jsonify({"status": "success", "anomalies": anomalies, "count": len(anomalies)})
+
+@app.route("/scada/stats")
+def scada_stats():
+    """SCADA observer statistics and subscribed tag list."""
+    return jsonify({"status": "success", "stats": _scada().get_stats()})
+
+
+# ─── MODULE 13: DIGITAL TWIN PHYSICS ENGINE ──────────────────────────────────
+
+@app.route("/ciec-twin/run", methods=["POST"])
+def ciec_twin_run():
+    """Run a physics simulation episode (thermal + pump + battery + power).
+    Body: {"steps": 100, "dt": 0.1, "q_in": 2000, "dp": 2.0,
+           "i_charge": 10, "i_disch": 8, "inject_faults": false}
+    """
+    d = request.get_json(force=True) or {}
+    result = _ptwin().run(
+        steps=int(d.get("steps", 100)), dt=float(d.get("dt", 0.1)),
+        q_in=float(d.get("q_in", 2000.0)), dp=float(d.get("dp", 2.0)),
+        i_charge=float(d.get("i_charge", 10.0)), i_disch=float(d.get("i_disch", 8.0)),
+        inject_faults=bool(d.get("inject_faults", False)),
+    )
+    return jsonify({"status": "success", "result": result.to_dict()})
+
+@app.route("/ciec-twin/evaluate", methods=["POST"])
+def ciec_twin_evaluate():
+    """Evaluate a mutation candidate against the digital twin.
+    Body: {"params": {...mutation params...}, "n_runs": 3}
+    Returns: {"promoted": bool, "metrics": {...fitness scores...}}
+    """
+    d = request.get_json(force=True) or {}
+    promote, metrics = _ptwin().evaluate_mutation(
+        d.get("params", {}), n_runs=int(d.get("n_runs", 3))
+    )
+    return jsonify({"status": "success", "promoted": promote, "metrics": metrics})
+
+@app.route("/ciec-twin/stats")
+def ciec_twin_stats():
+    """Physics twin simulation statistics."""
+    return jsonify({"status": "success", "stats": _ptwin().get_stats()})
+
+
+# ─── MODULE 14: RULE CONSTRAINT ENGINE ───────────────────────────────────────
+
+@app.route("/constraints/validate", methods=["POST"])
+def constraints_validate():
+    """Validate proposed parameter action against all safety constraints.
+    Body: {"state": {"pressure": 3.0, "battery_soc": 0.8}, "action": {"delta_kp": 0.02}}
+    Returns: {"allowed": bool, "total_penalty": float, "hard_violations": [...]}
+    """
+    d = request.get_json(force=True) or {}
+    result = _rules().validate(d.get("state", {}), d.get("action", {}))
+    return jsonify({"status": "success", "validation": result.to_dict()})
+
+@app.route("/constraints/check-state", methods=["POST"])
+def constraints_check_state():
+    """Quick hard-constraint safety check on current plant state.
+    Body: {"state": {"pressure": 3.0, ...}}
+    """
+    d = request.get_json(force=True) or {}
+    return jsonify({"status": "success",
+                    "safe": _rules().is_safe_state(d.get("state", {}))})
+
+@app.route("/constraints/list")
+def constraints_list():
+    """List all registered hard and soft constraints."""
+    return jsonify({"status": "success",
+                    "constraints": _rules().get_constraints()})
+
+@app.route("/constraints/violations")
+def constraints_violations():
+    """Recent constraint violation audit log."""
+    n = int(request.args.get("n", 50))
+    hist = _rules().get_violation_history(n)
+    return jsonify({"status": "success", "violations": hist, "count": len(hist)})
+
+@app.route("/constraints/stats")
+def constraints_stats():
+    """Constraint engine statistics: check count, block rate, violations by category."""
+    return jsonify({"status": "success", "stats": _rules().get_stats()})
+
+
+# ─── MODULE 15: CROSS-PROJECT KNOWLEDGE GRAPH ────────────────────────────────
+
+@app.route("/kg/add-pid", methods=["POST"])
+def kg_add_pid():
+    """Store a proven PID configuration in the cross-project knowledge graph.
+    Body: {"title": "...", "kp": 1.2, "ki": 0.3, "kd": 0.05,
+           "sample_time": 0.1, "output_min": 0, "output_max": 100,
+           "plant_type": "pump", "site_id": "PLANT_A", "project_id": "2024"}
+    """
+    d = request.get_json(force=True) or {}
+    node = _kg().add_pid_config(
+        title=d.get("title", "PID Config"),
+        kp=float(d.get("kp", 1.0)), ki=float(d.get("ki", 0.1)),
+        kd=float(d.get("kd", 0.01)), sample_time=float(d.get("sample_time", 0.1)),
+        output_min=float(d.get("output_min", 0.0)), output_max=float(d.get("output_max", 100.0)),
+        plant_type=d.get("plant_type", "generic"),
+        site_id=d.get("site_id", ""), project_id=d.get("project_id", ""),
+        tags=d.get("tags"),
+    )
+    return jsonify({"status": "success", "node_id": node.node_id})
+
+@app.route("/kg/add-failure", methods=["POST"])
+def kg_add_failure():
+    """Record a failure signature and proven fix template.
+    Body: {"title": "...", "symptoms": [...], "root_cause": "...",
+           "fix_template": {...}, "site_id": "...", "project_id": "..."}
+    """
+    d = request.get_json(force=True) or {}
+    node = _kg().add_failure_signature(
+        title=d.get("title", "Failure"), symptoms=d.get("symptoms", []),
+        root_cause=d.get("root_cause", ""), fix_template=d.get("fix_template", {}),
+        site_id=d.get("site_id", ""), project_id=d.get("project_id", ""),
+    )
+    return jsonify({"status": "success", "node_id": node.node_id})
+
+@app.route("/kg/find-similar", methods=["POST"])
+def kg_find_similar():
+    """Query knowledge graph for nodes similar to current context.
+    Body: {"vector": [1.2, 0.3, 0.05], "tags": ["pump"], "kind": "PIDConfig", "top_k": 5}
+    """
+    d = request.get_json(force=True) or {}
+    matches = _kg().find_similar(
+        query_vector=d.get("vector", []), query_tags=d.get("tags", []),
+        kind_filter=d.get("kind"), top_k=int(d.get("top_k", 5)),
+        min_similarity=float(d.get("min_similarity", 0.1)),
+    )
+    return jsonify({"status": "success", "matches": [m.to_dict() for m in matches]})
+
+@app.route("/kg/find-by-symptoms", methods=["POST"])
+def kg_find_by_symptoms():
+    """Match failure signatures to observed symptoms.
+    Body: {"symptoms": ["pressure_drop", "high_vibration"], "top_k": 5}
+    """
+    d = request.get_json(force=True) or {}
+    matches = _kg().find_by_symptoms(d.get("symptoms", []),
+                                      top_k=int(d.get("top_k", 5)))
+    return jsonify({"status": "success", "matches": [m.to_dict() for m in matches]})
+
+@app.route("/kg/recurring-patterns")
+def kg_recurring_patterns():
+    """Detect problems solved multiple times across projects/sites.
+    This is the 'you solved this pump cavitation 4 times in 8 years' detector.
+    """
+    min_occ  = int(request.args.get("min_occurrences", 2))
+    patterns = _kg().detect_recurring_patterns(min_occurrences=min_occ)
+    return jsonify({"status": "success", "patterns": patterns, "count": len(patterns)})
+
+@app.route("/kg/export-bundle")
+def kg_export_bundle():
+    """Export signed knowledge diff bundle for federated multi-site sync."""
+    since  = float(request.args.get("since", 0.0))
+    bundle = _kg().export_diff_bundle(since_timestamp=since)
+    return jsonify({"status": "success", "bundle": bundle})
+
+@app.route("/kg/import-bundle", methods=["POST"])
+def kg_import_bundle():
+    """Import a verified knowledge diff bundle from another site."""
+    d        = request.get_json(force=True) or {}
+    bundle   = d.get("bundle", d)
+    imported = _kg().import_diff_bundle(bundle)
+    return jsonify({"status": "success", "imported": imported})
+
+@app.route("/kg/nodes")
+def kg_nodes():
+    """List knowledge graph nodes (optionally filtered by kind)."""
+    nodes = _kg().list_nodes(kind=request.args.get("kind"),
+                              limit=int(request.args.get("limit", 50)))
+    return jsonify({"status": "success", "nodes": nodes, "count": len(nodes)})
+
+@app.route("/kg/stats")
+def kg_stats():
+    """Knowledge graph statistics: node count, edge count, sites, projects."""
+    return jsonify({"status": "success", "stats": _kg().get_stats()})
+
+
+# ─── MODULE 16: INDUSTRIAL ACTOR-CRITIC RL ───────────────────────────────────
+
+@app.route("/ciec-rl/act", methods=["POST"])
+def ciec_rl_act():
+    """Get a constrained bounded parameter-shift action from the CIEC RL policy.
+    Body: {"state": [0.1, 0.2, ...32 floats], "deterministic": false, "shield": true}
+    Returns: {"action": {"delta_kp": 0.02, ...}, "info": {"shielded": false, ...}}
+    Note: shield=true routes action through Rule Constraint Engine first.
+    """
+    d             = request.get_json(force=True) or {}
+    state         = d.get("state", [0.0] * 32)
+    deterministic = bool(d.get("deterministic", False))
+    ce            = _rules() if bool(d.get("shield", True)) else None
+    action, info  = _acrl().select_action(state, deterministic=deterministic,
+                                           constraint_check=ce)
+    return jsonify({"status": "success", "action": action, "info": info})
+
+@app.route("/ciec-rl/observe", methods=["POST"])
+def ciec_rl_observe():
+    """Feed a transition into the constrained RL replay buffer.
+    Body: {"state": [...], "action": [...], "reward": 1.0,
+           "next_state": [...], "done": false, "cost": 0.0}
+    """
+    d = request.get_json(force=True) or {}
+    if not d.get("state"):
+        return jsonify({"status": "error", "error": "state required"}), 400
+    _acrl().observe(state=d["state"], action=d.get("action", []),
+                    reward=float(d.get("reward", 0.0)),
+                    next_state=d.get("next_state", d["state"]),
+                    done=bool(d.get("done", False)),
+                    cost=float(d.get("cost", 0.0)))
+    return jsonify({"status": "success", "buffer_size": len(_acrl().buffer)})
+
+@app.route("/ciec-rl/update", methods=["POST"])
+def ciec_rl_update():
+    """Trigger one constrained actor-critic gradient update with Lagrangian penalty."""
+    d      = request.get_json(force=True) or {}
+    result = _acrl().update(batch_size=int(d.get("batch_size", 64)))
+    return jsonify({"status": "success", "update": result})
+
+@app.route("/ciec-rl/stats")
+def ciec_rl_stats():
+    """CIEC RL statistics: steps, episodes, shield rate, lambda values, PLC bounds."""
+    return jsonify({"status": "success", "stats": _acrl().get_stats()})
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # ERROR HANDLERS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -740,23 +1059,47 @@ def not_found(_):
     return jsonify({
         "status":  "error",
         "error":   "Endpoint not found",
-        "version": "3.0",
-        "all_endpoints": [
-            "POST /sentinel/extract", "POST /sentinel/debate",
-            "GET  /sentinel/search",  "GET  /sentinel/status",
-            "POST /firewall/scan",
-            "GET  /decay/scan",       "GET  /decay/record/<hash_id>",  "POST /decay/revalidate",
-            "GET  /ledger/status",    "GET  /ledger/verify",           "GET  /ledger/proof/<hash_id>",
-            "POST /conflict/analyze", "POST /conflict/quick",
-            "GET  /tracker/leaderboard", "GET  /tracker/model/<name>", "POST /tracker/validate",
-            "POST /guard/assess",
-            "POST /fuzzy/classify",  "POST /fuzzy/update",  "POST /fuzzy/tune",  "GET  /fuzzy/stats",
-            "POST /rl/act",          "POST /rl/learn",       "GET  /rl/stats",
-            "POST /twin/evaluate",   "GET  /twin/stats",
-            "POST /mesh/share",      "POST /mesh/register",
-            "GET  /mesh/leaderboard", "GET  /mesh/stats",
-            "GET  /health",
-        ],
+        "version": "4.0",
+        "modules": {
+            "v2.1 Sentinel Intelligence (6 modules, 17 endpoints)": [
+                "POST /sentinel/extract", "POST /sentinel/debate",
+                "GET  /sentinel/search",  "GET  /sentinel/status",
+                "POST /firewall/scan",
+                "GET  /decay/scan", "GET  /decay/record/<hash_id>", "POST /decay/revalidate",
+                "GET  /ledger/status", "GET  /ledger/verify", "GET  /ledger/proof/<hash_id>",
+                "POST /conflict/analyze", "POST /conflict/quick",
+                "GET  /tracker/leaderboard", "GET  /tracker/model/<n>",
+                "POST /tracker/validate", "POST /guard/assess",
+            ],
+            "v3.0 Industrial AI (4 modules, 13 endpoints)": [
+                "POST /fuzzy/classify",  "POST /fuzzy/update",
+                "POST /fuzzy/tune",      "GET  /fuzzy/stats",
+                "POST /rl/act",          "POST /rl/learn",   "GET  /rl/stats",
+                "POST /twin/evaluate",   "GET  /twin/stats",
+                "POST /mesh/share",      "POST /mesh/register",
+                "GET  /mesh/leaderboard","GET  /mesh/stats",
+            ],
+            "v4.0 CIEC Cognitive Industrial Core (6 modules, 28 endpoints)": [
+                "POST /plc/parse",             "GET  /plc/stats",
+                "POST /scada/push",            "POST /scada/ingest-history",
+                "GET  /scada/state",           "GET  /scada/anomalies",
+                "GET  /scada/stats",
+                "POST /ciec-twin/run",         "POST /ciec-twin/evaluate",
+                "GET  /ciec-twin/stats",
+                "POST /constraints/validate",  "POST /constraints/check-state",
+                "GET  /constraints/list",      "GET  /constraints/violations",
+                "GET  /constraints/stats",
+                "POST /kg/add-pid",            "POST /kg/add-failure",
+                "POST /kg/find-similar",       "POST /kg/find-by-symptoms",
+                "GET  /kg/recurring-patterns", "GET  /kg/export-bundle",
+                "POST /kg/import-bundle",      "GET  /kg/nodes",
+                "GET  /kg/stats",
+                "POST /ciec-rl/act",           "POST /ciec-rl/observe",
+                "POST /ciec-rl/update",        "GET  /ciec-rl/stats",
+            ],
+        },
+        "total_endpoints": 59,
+        "system_health":   "GET /health",
     }), 404
 
 
@@ -765,9 +1108,10 @@ def not_found(_):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    logger.info("╔══════════════════════════════════════════════════════════╗")
-    logger.info("║  KISWARM v3.0 — SENTINEL BRIDGE API                    ║")
-    logger.info("║  Port: 11436  |  Modules: 10  |  Endpoints: 29        ║")
-    logger.info("║  Industrial AI: Fuzzy · CRL · Twin · FedMesh          ║")
-    logger.info("╚══════════════════════════════════════════════════════════╝")
+    logger.info("╔══════════════════════════════════════════════════════════════╗")
+    logger.info("║  KISWARM v4.0 — CIEC Cognitive Industrial Evolution Core    ║")
+    logger.info("║  Port: 11436  |  Modules: 16  |  Endpoints: 59            ║")
+    logger.info("║  v2.1: Sentinel  v3.0: Industrial AI  v4.0: CIEC          ║")
+    logger.info("║  PLC Parser · SCADA · Physics Twin · Rules · KG · RL      ║")
+    logger.info("╚══════════════════════════════════════════════════════════════╝")
     app.run(host="127.0.0.1", port=11436, debug=False, threaded=True)
