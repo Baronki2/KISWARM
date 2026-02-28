@@ -1051,6 +1051,1077 @@ def ciec_rl_stats():
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# v4.1 CIEC INDUSTRIAL EVOLUTION — LAZY INIT
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_td3_inst   = None
+_ast_inst   = None
+_ephys_inst = None
+_vmw_inst   = None
+_fv_inst    = None
+_byz_inst   = None
+_mgov_inst  = None
+
+def _td3():
+    global _td3_inst
+    if _td3_inst is None:
+        from python.sentinel.td3_controller import TD3IndustrialController
+        _td3_inst = TD3IndustrialController(state_dim=256)
+    return _td3_inst
+
+def _ast():
+    global _ast_inst
+    if _ast_inst is None:
+        from python.sentinel.ast_parser import IEC61131ASTParser
+        _ast_inst = IEC61131ASTParser()
+    return _ast_inst
+
+def _ephys():
+    global _ephys_inst
+    if _ephys_inst is None:
+        from python.sentinel.extended_physics import ExtendedPhysicsTwin
+        _ephys_inst = ExtendedPhysicsTwin()
+    return _ephys_inst
+
+def _vmw():
+    global _vmw_inst
+    if _vmw_inst is None:
+        from python.sentinel.vmware_orchestrator import VMwareOrchestrator
+        _vmw_inst = VMwareOrchestrator()
+    return _vmw_inst
+
+def _fv():
+    global _fv_inst
+    if _fv_inst is None:
+        from python.sentinel.formal_verification import FormalVerificationEngine
+        _fv_inst = FormalVerificationEngine()
+    return _fv_inst
+
+def _byz():
+    global _byz_inst
+    if _byz_inst is None:
+        from python.sentinel.byzantine_aggregator import ByzantineFederatedAggregator
+        _byz_inst = ByzantineFederatedAggregator()
+    return _byz_inst
+
+def _mgov():
+    global _mgov_inst
+    if _mgov_inst is None:
+        from python.sentinel.mutation_governance import MutationGovernanceEngine
+        _mgov_inst = MutationGovernanceEngine()
+    return _mgov_inst
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.1 MODULE 17 — TD3 INDUSTRIAL CONTROLLER
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/td3/act", methods=["POST"])
+def td3_act():
+    """Select TD3 action for a given state vector."""
+    data  = request.get_json() or {}
+    state = data.get("state", [0.0] * 256)
+    det   = data.get("deterministic", False)
+    noise = data.get("exploration_noise", 0.05)
+    action, info = _td3().select_action(state, deterministic=det,
+                                         exploration_noise=noise)
+    return jsonify({"status": "success", "action": action, "info": info})
+
+@app.route("/td3/observe", methods=["POST"])
+def td3_observe():
+    """Push a transition into the replay buffer."""
+    data = request.get_json() or {}
+    _td3().observe(
+        state      = data.get("state",      [0.0] * 256),
+        action     = data.get("action",     [0.0] * 8),
+        reward     = float(data.get("reward", 0.0)),
+        next_state = data.get("next_state", [0.0] * 256),
+        done       = bool(data.get("done",   False)),
+        cost       = float(data.get("cost",  0.0)),
+    )
+    return jsonify({"status": "success", "buffer_size": len(_td3().buffer)})
+
+@app.route("/td3/update", methods=["POST"])
+def td3_update():
+    """Perform one TD3 gradient update."""
+    data   = request.get_json() or {}
+    result = _td3().update(batch_size=data.get("batch_size"))
+    return jsonify({"status": "success", "result": result})
+
+@app.route("/td3/reward", methods=["POST"])
+def td3_reward():
+    """Compute CIEC reward from performance metrics."""
+    data = request.get_json() or {}
+    r = _td3().compute_reward(
+        stability_score    = float(data.get("stability_score",    0.8)),
+        efficiency_score   = float(data.get("efficiency_score",   0.7)),
+        actuator_cycles    = float(data.get("actuator_cycles",    0.1)),
+        boundary_violation = float(data.get("boundary_violation", 0.0)),
+        oscillation        = float(data.get("oscillation",        0.05)),
+    )
+    return jsonify({"status": "success", "reward": round(r, 6)})
+
+@app.route("/td3/stats", methods=["GET"])
+def td3_stats():
+    return jsonify({"status": "success", "stats": _td3().get_stats()})
+
+@app.route("/td3/checkpoint", methods=["GET"])
+def td3_checkpoint():
+    return jsonify({"status": "success", "checkpoint": _td3().checkpoint()})
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.1 MODULE 18 — IEC 61131-3 FULL AST PARSER
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/ast/parse", methods=["POST"])
+def ast_parse():
+    """Parse IEC 61131-3 ST source → AST + CFG + DDG + SDG."""
+    data   = request.get_json() or {}
+    source = data.get("source", "PROGRAM empty END_PROGRAM")
+    name   = data.get("program_name", "UNKNOWN")
+    result = _ast().parse(source, name)
+    return jsonify({"status": "success", "result": result.to_dict()})
+
+@app.route("/ast/detect-patterns", methods=["POST"])
+def ast_detect():
+    """Parse + return detected PID blocks, interlocks, dead code."""
+    data   = request.get_json() or {}
+    source = data.get("source", "PROGRAM empty END_PROGRAM")
+    result = _ast().parse(source)
+    return jsonify({
+        "status":      "success",
+        "pid_blocks":  [{"name": p.name, "kp": p.kp, "ki": p.ki, "kd": p.kd}
+                         for p in result.pid_blocks],
+        "interlocks":  [{"name": i.name, "condition": i.condition,
+                          "safety": i.safety} for i in result.interlocks],
+        "dead_code":   [{"description": d.description, "line": d.line}
+                         for d in result.dead_code],
+        "var_count":   result.var_count,
+        "stmt_count":  result.stmt_count,
+    })
+
+@app.route("/ast/cfg", methods=["POST"])
+def ast_cfg():
+    """Return Control Flow Graph for a given ST program."""
+    data   = request.get_json() or {}
+    source = data.get("source", "PROGRAM empty END_PROGRAM")
+    result = _ast().parse(source)
+    return jsonify({
+        "status":    "success",
+        "cfg_nodes": len(result.cfg),
+        "cfg":       {k: {"kind": v.kind, "successors": v.successors,
+                           "stmts": v.stmts}
+                      for k, v in result.cfg.items()},
+    })
+
+@app.route("/ast/stats", methods=["GET"])
+def ast_stats():
+    return jsonify({"status": "success", "stats": _ast().get_stats()})
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.1 MODULE 19 — EXTENDED PHYSICS TWIN
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/ephys/step", methods=["POST"])
+def ephys_step():
+    """Advance all physics blocks by dt seconds."""
+    data    = request.get_json() or {}
+    inputs  = data.get("inputs", {})
+    dt      = float(data.get("dt", 0.1))
+    method  = data.get("method", "rk4")
+    ss      = _ephys().step(inputs, dt, method)
+    return jsonify({
+        "status":         "success",
+        "step":           ss.step,
+        "t":              ss.t,
+        "state":          ss.state,
+        "hard_violation": ss.hard_violation,
+        "fault_active":   ss.fault_active,
+    })
+
+@app.route("/ephys/episode", methods=["POST"])
+def ephys_episode():
+    """Run a complete simulation episode with optional fault injection."""
+    data    = request.get_json() or {}
+    n_steps = int(data.get("n_steps", 100))
+    dt      = float(data.get("dt", 0.1))
+    result  = _ephys().run_episode(n_steps=n_steps, dt=dt)
+    return jsonify({"status": "success", "result": result})
+
+@app.route("/ephys/evaluate-mutation", methods=["POST"])
+def ephys_evaluate_mutation():
+    """Evaluate parameter mutation across Monte Carlo episodes."""
+    data         = request.get_json() or {}
+    param_deltas = data.get("param_deltas", {})
+    n_runs       = int(data.get("n_runs", 5))
+    promoted, metrics = _ephys().evaluate_mutation(param_deltas, n_runs)
+    return jsonify({"status": "success", "promoted": promoted, "metrics": metrics})
+
+@app.route("/ephys/pump", methods=["POST"])
+def ephys_pump():
+    """Direct pump algebraic computation (Q, H, P)."""
+    from python.sentinel.extended_physics import PumpBlock
+    data   = request.get_json() or {}
+    rpm    = float(data.get("RPM", 1450))
+    params = data.get("params", {})
+    result = PumpBlock().compute(rpm, params)
+    return jsonify({"status": "success", "result": result})
+
+@app.route("/ephys/battery-voltage", methods=["POST"])
+def ephys_battery_voltage():
+    """Compute battery terminal voltage."""
+    from python.sentinel.extended_physics import BatteryBlock
+    data  = request.get_json() or {}
+    soc   = float(data.get("SOC",   0.8))
+    I     = float(data.get("I",     10.0))
+    R_int = float(data.get("R_int", 0.05))
+    v     = BatteryBlock().compute_voltage(soc, I, R_int)
+    return jsonify({"status": "success", "voltage": round(v, 4)})
+
+@app.route("/ephys/stats", methods=["GET"])
+def ephys_stats():
+    return jsonify({"status": "success", "stats": _ephys().get_stats()})
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.1 MODULE 20 — VMWARE ORCHESTRATOR
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/vmw/vms", methods=["GET"])
+def vmw_list():
+    return jsonify({"status": "success", "vms": _vmw().list_vms()})
+
+@app.route("/vmw/vm/<vm_id>", methods=["GET"])
+def vmw_get(vm_id):
+    vm = _vmw().get_vm(vm_id)
+    if not vm:
+        return jsonify({"status": "error", "error": "VM not found"}), 404
+    return jsonify({"status": "success", "vm": vm})
+
+@app.route("/vmw/snapshot", methods=["POST"])
+def vmw_snapshot():
+    data = request.get_json() or {}
+    result = _vmw().create_snapshot(
+        vm_id    = data.get("vm_id", "VM-C"),
+        snap_name= data.get("snap_name", f"snap_{int(time.time())}"),
+        actor    = data.get("actor", "api"),
+    )
+    return jsonify({"status": "success" if result.get("ok") else "error",
+                    "result": result})
+
+@app.route("/vmw/revert", methods=["POST"])
+def vmw_revert():
+    data = request.get_json() or {}
+    result = _vmw().revert_snapshot(
+        vm_id     = data.get("vm_id"),
+        snap_name = data.get("snap_name"),
+        actor     = data.get("actor", "api"),
+    )
+    return jsonify({"status": "success" if result.get("ok") else "error",
+                    "result": result})
+
+@app.route("/vmw/clone", methods=["POST"])
+def vmw_clone():
+    data = request.get_json() or {}
+    result = _vmw().clone_vm(
+        src_vm_id      = data.get("src_vm_id", "VM-C"),
+        clone_name     = data.get("clone_name"),
+        isolate_network= bool(data.get("isolate_network", True)),
+        actor          = data.get("actor", "api"),
+    )
+    return jsonify({"status": "success" if result.get("ok") else "error",
+                    "result": result})
+
+@app.route("/vmw/mutation/begin", methods=["POST"])
+def vmw_mutation_begin():
+    data = request.get_json() or {}
+    mid  = _vmw().begin_mutation(
+        source_vm    = data.get("source_vm", "VM-C"),
+        param_deltas = data.get("param_deltas", {}),
+        actor        = data.get("actor", "api"),
+    )
+    return jsonify({"status": "success", "mutation_id": mid})
+
+@app.route("/vmw/mutation/promote", methods=["POST"])
+def vmw_mutation_promote():
+    data   = request.get_json() or {}
+    result = _vmw().promote_mutation(
+        mutation_id  = data.get("mutation_id"),
+        approval_code= data.get("approval_code", ""),
+    )
+    return jsonify({"status": "success" if result.get("ok") else "error",
+                    "result": result})
+
+@app.route("/vmw/audit", methods=["GET"])
+def vmw_audit():
+    limit = int(request.args.get("limit", 50))
+    return jsonify({"status": "success", "audit": _vmw().get_audit_log(limit)})
+
+@app.route("/vmw/stats", methods=["GET"])
+def vmw_stats():
+    return jsonify({"status": "success", "stats": _vmw().get_stats()})
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.1 MODULE 21 — FORMAL VERIFICATION ENGINE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/fv/lyapunov", methods=["POST"])
+def fv_lyapunov():
+    """Verify Lyapunov stability of a linearized system matrix A."""
+    data = request.get_json() or {}
+    A    = data.get("A")
+    if not A:
+        # Default: 2x2 stable system
+        A = [[0.9, 0.1], [-0.05, 0.85]]
+    mid    = data.get("mutation_id", "api_check")
+    result = _fv().verify_linearized(A, mutation_id=mid)
+    return jsonify({"status": "success", "result": result.to_dict()})
+
+@app.route("/fv/barrier", methods=["POST"])
+def fv_barrier():
+    """Verify barrier certificate via sampling."""
+    import math
+    data     = request.get_json() or {}
+    safe_set = data.get("safe_set", [[-1.0, 1.0], [-1.0, 1.0]])
+    n_samples= int(data.get("n_samples", 200))
+    mid      = data.get("mutation_id", "api_barrier")
+    # Use quadratic B(x) = sum(xi^2) - bound as default
+    bound    = float(data.get("barrier_bound", 1.5))
+    def B(x): return bound - sum(xi*xi for xi in x)
+    def f(x): return [-0.1*xi for xi in x]   # stable attractor
+    result = _fv().verify_barrier(B, f, safe_set, n_samples, mutation_id=mid)
+    return jsonify({"status": "success", "result": result.to_dict()})
+
+@app.route("/fv/full", methods=["POST"])
+def fv_full():
+    """Full verification: Lyapunov + optional barrier."""
+    data = request.get_json() or {}
+    A    = data.get("A", [[0.9, 0.0], [0.0, 0.85]])
+    mid  = data.get("mutation_id", "api_full")
+    result = _fv().verify_full(A, mutation_id=mid)
+    return jsonify({"status": "success", "result": result.to_dict()})
+
+@app.route("/fv/ledger", methods=["GET"])
+def fv_ledger():
+    limit = int(request.args.get("limit", 50))
+    return jsonify({
+        "status":  "success",
+        "ledger":  _fv().ledger.get_all(limit),
+        "intact":  _fv().ledger.verify_integrity(),
+    })
+
+@app.route("/fv/stats", methods=["GET"])
+def fv_stats():
+    return jsonify({"status": "success", "stats": _fv().get_stats()})
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.1 MODULE 22 — BYZANTINE FEDERATED AGGREGATOR
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/byz/register-site", methods=["POST"])
+def byz_register():
+    data   = request.get_json() or {}
+    result = _byz().register_site(
+        site_id  = data.get("site_id", "site_1"),
+        metadata = data.get("metadata", {}),
+    )
+    return jsonify({"status": "success", "result": result})
+
+@app.route("/byz/aggregate", methods=["POST"])
+def byz_aggregate():
+    """Aggregate gradient updates from multiple sites."""
+    from python.sentinel.byzantine_aggregator import SiteUpdate
+    data    = request.get_json() or {}
+    raw_upd = data.get("updates", [])
+    method  = data.get("method", "trimmed_mean")
+    updates = [
+        SiteUpdate(
+            site_id    = u.get("site_id", f"site_{i}"),
+            gradient   = u.get("gradient", [0.0] * 8),
+            param_dim  = u.get("param_dim", 8),
+            step       = int(u.get("step", 0)),
+            performance= float(u.get("performance", 0.0)),
+            n_samples  = int(u.get("n_samples", 1)),
+        )
+        for i, u in enumerate(raw_upd)
+    ]
+    result = _byz().aggregate(updates, method=method)
+    return jsonify({"status": "success", "result": result.to_dict()})
+
+@app.route("/byz/export-params", methods=["GET"])
+def byz_export():
+    return jsonify({"status": "success", "params": _byz().export_global_params()})
+
+@app.route("/byz/leaderboard", methods=["GET"])
+def byz_leaderboard():
+    return jsonify({"status": "success",
+                    "leaderboard": _byz().get_site_leaderboard()})
+
+@app.route("/byz/anomalies", methods=["GET"])
+def byz_anomalies():
+    limit = int(request.args.get("limit", 50))
+    return jsonify({"status": "success",
+                    "anomalies": _byz().get_anomaly_log(limit)})
+
+@app.route("/byz/stats", methods=["GET"])
+def byz_stats():
+    return jsonify({"status": "success", "stats": _byz().get_stats()})
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.1 MODULE 23 — MUTATION GOVERNANCE PIPELINE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/gov/begin", methods=["POST"])
+def gov_begin():
+    """Begin a new 11-step mutation pipeline."""
+    data   = request.get_json() or {}
+    mid    = _mgov().begin_mutation(
+        plc_program  = data.get("plc_program",  "PLC_PROG"),
+        param_deltas = data.get("param_deltas", {}),
+    )
+    return jsonify({"status": "success", "mutation_id": mid})
+
+@app.route("/gov/step", methods=["POST"])
+def gov_step():
+    """Execute a specific pipeline step (1-7, 9-10)."""
+    data    = request.get_json() or {}
+    mid     = data.get("mutation_id")
+    step_id = int(data.get("step_id", 1))
+    context = data.get("context", {})
+    result  = _mgov().run_step(mid, step_id, context=context)
+    return jsonify({"status": "success" if result.get("passed") else "error",
+                    "result": result})
+
+@app.route("/gov/approve", methods=["POST"])
+def gov_approve():
+    """Step 8: Human approval gate — Baron Marco Paolo Ialongo only."""
+    data   = request.get_json() or {}
+    result = _mgov().approve(
+        mutation_id  = data.get("mutation_id"),
+        approval_code= data.get("approval_code", ""),
+    )
+    return jsonify({
+        "status": "success" if result.get("approved") else "error",
+        "result": result,
+    })
+
+@app.route("/gov/release-key", methods=["POST"])
+def gov_release_key():
+    """Step 11: Release production deployment key."""
+    data   = request.get_json() or {}
+    result = _mgov().release_production_key(data.get("mutation_id"))
+    return jsonify({
+        "status": "success" if result.get("deployed") else "error",
+        "result": result,
+    })
+
+@app.route("/gov/mutation/<mutation_id>", methods=["GET"])
+def gov_get_mutation(mutation_id):
+    m = _mgov().get_mutation(mutation_id)
+    if not m:
+        return jsonify({"status": "error", "error": "Not found"}), 404
+    return jsonify({"status": "success", "mutation": m})
+
+@app.route("/gov/mutation/<mutation_id>/evidence", methods=["GET"])
+def gov_get_evidence(mutation_id):
+    ev = _mgov().get_full_evidence(mutation_id)
+    if ev is None:
+        return jsonify({"status": "error", "error": "Not found"}), 404
+    return jsonify({"status": "success", "evidence": ev})
+
+@app.route("/gov/list", methods=["GET"])
+def gov_list():
+    status = request.args.get("status")
+    limit  = int(request.args.get("limit", 50))
+    return jsonify({"status": "success",
+                    "mutations": _mgov().list_mutations(status, limit)})
+
+@app.route("/gov/stats", methods=["GET"])
+def gov_stats():
+    return jsonify({"status": "success", "stats": _mgov().get_stats()})
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.1 ENDPOINTS — CIEC Advanced (6 new modules, 28 new endpoints)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _get_td3():
+    if not hasattr(app, "_td3"):
+        from .td3_controller import TD3IndustrialController
+        app._td3 = TD3IndustrialController(state_dim=256)
+    return app._td3
+
+def _get_ast_parser():
+    if not hasattr(app, "_ast_parser"):
+        from .ast_parser import IEC61131ASTParser
+        app._ast_parser = IEC61131ASTParser()
+    return app._ast_parser
+
+def _get_ext_physics():
+    if not hasattr(app, "_ext_physics"):
+        from .extended_physics import ExtendedPhysicsTwin, FaultConfig
+        app._ext_physics = ExtendedPhysicsTwin()
+        app._FaultConfig = FaultConfig
+    return app._ext_physics
+
+def _get_vmware():
+    if not hasattr(app, "_vmware"):
+        from .vmware_orchestrator import VMwareOrchestrator
+        app._vmware = VMwareOrchestrator()
+    return app._vmware
+
+def _get_formal():
+    if not hasattr(app, "_formal"):
+        from .formal_verification import FormalVerificationEngine
+        app._formal = FormalVerificationEngine()
+    return app._formal
+
+def _get_byzantine():
+    if not hasattr(app, "_byzantine"):
+        from .byzantine_aggregator import ByzantineFederatedAggregator
+        app._byzantine = ByzantineFederatedAggregator(f_tolerance=1)
+    return app._byzantine
+
+def _get_governance():
+    if not hasattr(app, "_governance"):
+        from .mutation_governance import MutationGovernanceEngine
+        app._governance = MutationGovernanceEngine()
+    return app._governance
+
+
+# ── TD3 Controller ────────────────────────────────────────────────────────────
+
+@app.route("/td3/act", methods=["POST"])
+def td3_act():
+    """POST /td3/act — select bounded PLC parameter-shift action"""
+    data  = request.get_json() or {}
+    state = data.get("state", [0.0] * 256)
+    det   = data.get("deterministic", False)
+    noise = data.get("exploration_noise", 0.05)
+    try:
+        ctrl = _get_td3()
+        action, info = ctrl.select_action(state, deterministic=det,
+                                          exploration_noise=noise)
+        return jsonify({"status": "ok", "action": action, "info": info})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/td3/observe", methods=["POST"])
+def td3_observe():
+    """POST /td3/observe — push transition into replay buffer"""
+    data = request.get_json() or {}
+    try:
+        ctrl = _get_td3()
+        ctrl.observe(
+            state      = data.get("state", []),
+            action     = data.get("action", []),
+            reward     = float(data.get("reward", 0.0)),
+            next_state = data.get("next_state", []),
+            done       = bool(data.get("done", False)),
+            cost       = float(data.get("cost", 0.0)),
+        )
+        return jsonify({"status": "ok",
+                        "buffer_size": len(ctrl.buffer)})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/td3/update", methods=["POST"])
+def td3_update():
+    """POST /td3/update — perform one TD3 training step"""
+    try:
+        ctrl   = _get_td3()
+        result = ctrl.update()
+        return jsonify({"status": "ok", "result": result})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/td3/reward", methods=["POST"])
+def td3_reward():
+    """POST /td3/reward — compute CIEC reward from KPI scores"""
+    data = request.get_json() or {}
+    try:
+        from .td3_controller import TD3IndustrialController
+        r = TD3IndustrialController.compute_reward(
+            stability_score    = float(data.get("stability_score",    0.8)),
+            efficiency_score   = float(data.get("efficiency_score",   0.7)),
+            actuator_cycles    = float(data.get("actuator_cycles",    0.1)),
+            boundary_violation = float(data.get("boundary_violation", 0.0)),
+            oscillation        = float(data.get("oscillation",        0.05)),
+        )
+        return jsonify({"status": "ok", "reward": round(r, 6)})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/td3/stats", methods=["GET"])
+def td3_stats():
+    """GET /td3/stats — TD3 training statistics"""
+    try:
+        return jsonify({"status": "ok", "stats": _get_td3().get_stats()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+# ── IEC 61131-3 AST Parser ────────────────────────────────────────────────────
+
+@app.route("/ast/parse", methods=["POST"])
+def ast_parse():
+    """POST /ast/parse — full IEC 61131-3 ST parse → AST+CFG+DDG+SDG"""
+    data   = request.get_json() or {}
+    source = data.get("source", "")
+    if not source:
+        return jsonify({"status": "error", "error": "source required"}), 400
+    try:
+        result = _get_ast_parser().parse(source, data.get("program_name", "PROG"))
+        return jsonify({"status": "ok", "result": result.to_dict()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/ast/patterns", methods=["POST"])
+def ast_patterns():
+    """POST /ast/patterns — detect PID blocks, interlocks, dead code"""
+    data   = request.get_json() or {}
+    source = data.get("source", "")
+    if not source:
+        return jsonify({"status": "error", "error": "source required"}), 400
+    try:
+        result = _get_ast_parser().parse(source)
+        return jsonify({
+            "status":     "ok",
+            "pid_blocks": [{"name": p.name, "kp": p.kp, "ki": p.ki, "kd": p.kd}
+                           for p in result.pid_blocks],
+            "interlocks": [{"name": i.name, "condition": i.condition, "safety": i.safety}
+                           for i in result.interlocks],
+            "dead_code":  [{"description": d.description, "line": d.line}
+                           for d in result.dead_code],
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/ast/graphs", methods=["POST"])
+def ast_graphs():
+    """POST /ast/graphs — return CFG/DDG/SDG graph summaries"""
+    data   = request.get_json() or {}
+    source = data.get("source", "")
+    if not source:
+        return jsonify({"status": "error", "error": "source required"}), 400
+    try:
+        result = _get_ast_parser().parse(source)
+        return jsonify({
+            "status":    "ok",
+            "cfg_nodes": len(result.cfg),
+            "ddg_edges": len(result.ddg_edges),
+            "sdg_edges": len(result.sdg_edges),
+            "var_count": result.var_count,
+            "stmt_count":result.stmt_count,
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/ast/stats", methods=["GET"])
+def ast_stats():
+    """GET /ast/stats — parser cache and usage stats"""
+    try:
+        return jsonify({"status": "ok", "stats": _get_ast_parser().get_stats()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+# ── Extended Physics Twin ─────────────────────────────────────────────────────
+
+@app.route("/physics/step", methods=["POST"])
+def physics_step():
+    """POST /physics/step — advance all physics blocks by dt"""
+    data = request.get_json() or {}
+    try:
+        twin   = _get_ext_physics()
+        inputs = data.get("inputs", {})
+        dt     = float(data.get("dt", 0.1))
+        method = data.get("method", "rk4")
+        ss     = twin.step(inputs, dt, method)
+        return jsonify({
+            "status":          "ok",
+            "step":            ss.step,
+            "t":               round(ss.t, 4),
+            "state":           {k: round(v, 6) for k, v in ss.state.items()},
+            "hard_violation":  ss.hard_violation,
+            "fault_active":    ss.fault_active,
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/physics/episode", methods=["POST"])
+def physics_episode():
+    """POST /physics/episode — run full episode with optional fault injection"""
+    data = request.get_json() or {}
+    try:
+        twin = _get_ext_physics()
+        FaultConfig = app._FaultConfig if hasattr(app, "_FaultConfig") else None
+        faults = []
+        for fc in data.get("faults", []):
+            if FaultConfig:
+                faults.append(FaultConfig(
+                    category   = fc.get("category", "sensor_bias"),
+                    target     = fc.get("target", "Q_in"),
+                    magnitude  = float(fc.get("magnitude", 1.0)),
+                    onset_step = int(fc.get("onset_step", 0)),
+                    duration   = int(fc.get("duration", -1)),
+                ))
+        result = twin.run_episode(
+            n_steps = int(data.get("n_steps", 100)),
+            dt      = float(data.get("dt", 0.1)),
+            faults  = faults,
+        )
+        return jsonify({"status": "ok", "result": result})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/physics/evaluate-mutation", methods=["POST"])
+def physics_evaluate_mutation():
+    """POST /physics/evaluate-mutation — Monte Carlo mutation evaluation"""
+    data = request.get_json() or {}
+    try:
+        twin = _get_ext_physics()
+        promoted, metrics = twin.evaluate_mutation(
+            param_deltas      = data.get("param_deltas", {}),
+            n_runs            = int(data.get("n_runs", 5)),
+            fault_categories  = data.get("fault_categories"),
+        )
+        return jsonify({"status": "ok", "promoted": promoted, "metrics": metrics})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/physics/stats", methods=["GET"])
+def physics_stats():
+    """GET /physics/stats — physics twin statistics"""
+    try:
+        return jsonify({"status": "ok", "stats": _get_ext_physics().get_stats()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+# ── VMware Orchestrator ───────────────────────────────────────────────────────
+
+@app.route("/vmware/vms", methods=["GET"])
+def vmware_list():
+    """GET /vmware/vms — list all VMs in inventory"""
+    try:
+        return jsonify({"status": "ok", "vms": _get_vmware().list_vms()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/vmware/snapshot", methods=["POST"])
+def vmware_snapshot():
+    """POST /vmware/snapshot — create VM snapshot"""
+    data = request.get_json() or {}
+    try:
+        result = _get_vmware().create_snapshot(
+            data.get("vm_id", "VM-C"),
+            data.get("snap_name", "auto_snap"),
+            data.get("actor", "kiswarm"),
+        )
+        return jsonify({"status": "ok", "result": result})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/vmware/clone", methods=["POST"])
+def vmware_clone():
+    """POST /vmware/clone — clone VM for mutation testing"""
+    data = request.get_json() or {}
+    try:
+        result = _get_vmware().clone_vm(
+            data.get("src_vm_id", "VM-C"),
+            data.get("clone_name"),
+            data.get("isolate_network", True),
+            data.get("actor", "kiswarm"),
+        )
+        return jsonify({"status": "ok", "result": result})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/vmware/mutation/begin", methods=["POST"])
+def vmware_mutation_begin():
+    """POST /vmware/mutation/begin — start VM mutation cycle"""
+    data = request.get_json() or {}
+    try:
+        mid = _get_vmware().begin_mutation(
+            data.get("source_vm", "VM-C"),
+            data.get("param_deltas", {}),
+            data.get("actor", "kiswarm"),
+        )
+        return jsonify({"status": "ok", "mutation_id": mid})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/vmware/mutation/promote", methods=["POST"])
+def vmware_mutation_promote():
+    """POST /vmware/mutation/promote — promote mutation to production (requires approval)"""
+    data = request.get_json() or {}
+    try:
+        result = _get_vmware().promote_mutation(
+            data.get("mutation_id", ""),
+            data.get("approval_code", ""),
+        )
+        return jsonify({"status": "ok", "result": result})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/vmware/audit", methods=["GET"])
+def vmware_audit():
+    """GET /vmware/audit — VM operation audit log"""
+    try:
+        limit = int(request.args.get("limit", 50))
+        return jsonify({"status": "ok",
+                        "audit": _get_vmware().get_audit_log(limit)})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/vmware/stats", methods=["GET"])
+def vmware_stats():
+    """GET /vmware/stats — VMware orchestrator statistics"""
+    try:
+        return jsonify({"status": "ok", "stats": _get_vmware().get_stats()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+# ── Formal Verification ───────────────────────────────────────────────────────
+
+@app.route("/formal/lyapunov", methods=["POST"])
+def formal_lyapunov():
+    """POST /formal/lyapunov — Lyapunov stability check on system matrix A"""
+    data = request.get_json() or {}
+    A    = data.get("A")
+    if not A:
+        return jsonify({"status": "error", "error": "System matrix A required"}), 400
+    try:
+        result = _get_formal().verify_linearized(
+            A           = A,
+            mutation_id = data.get("mutation_id", "api_call"),
+        )
+        return jsonify({"status": "ok", "result": result.to_dict()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/formal/barrier", methods=["POST"])
+def formal_barrier():
+    """POST /formal/barrier — barrier certificate verification (sampling-based)"""
+    data = request.get_json() or {}
+    try:
+        safe_set = [tuple(pair) for pair in data.get("safe_set", [[-1, 1], [-1, 1]])]
+        decay    = float(data.get("decay", 0.1))
+        # Simple quadratic barrier: B(x) = 1 - sum(xi^2/ri^2)
+        def B(x):
+            return 1.0 - sum((x[i] / (safe_set[i][1] or 1.0))**2
+                             for i in range(min(len(x), len(safe_set))))
+        # Simple stable system: dx/dt = -decay * x
+        def f(x):
+            return [-decay * xi for xi in x]
+        result = _get_formal().verify_barrier(
+            B           = B,
+            f           = f,
+            safe_set    = safe_set,
+            n_samples   = int(data.get("n_samples", 200)),
+            mutation_id = data.get("mutation_id", "api_call"),
+        )
+        return jsonify({"status": "ok", "result": result.to_dict()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/formal/ledger", methods=["GET"])
+def formal_ledger():
+    """GET /formal/ledger — mutation verification ledger"""
+    try:
+        limit = int(request.args.get("limit", 50))
+        engine = _get_formal()
+        return jsonify({
+            "status":  "ok",
+            "entries": engine.ledger.get_all(limit),
+            "intact":  engine.ledger.verify_integrity(),
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/formal/stats", methods=["GET"])
+def formal_stats():
+    """GET /formal/stats — formal verification statistics"""
+    try:
+        return jsonify({"status": "ok", "stats": _get_formal().get_stats()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+# ── Byzantine Federated Aggregator ────────────────────────────────────────────
+
+@app.route("/federated/register", methods=["POST"])
+def federated_register():
+    """POST /federated/register — register a site in the federated mesh"""
+    data = request.get_json() or {}
+    try:
+        result = _get_byzantine().register_site(
+            data.get("site_id", f"site_{int(time.time())}"),
+            data.get("metadata", {}),
+        )
+        return jsonify({"status": "ok", "result": result})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/federated/aggregate", methods=["POST"])
+def federated_aggregate():
+    """POST /federated/aggregate — Byzantine-tolerant gradient aggregation"""
+    data = request.get_json() or {}
+    try:
+        from .byzantine_aggregator import SiteUpdate
+        updates = []
+        for u in data.get("updates", []):
+            updates.append(SiteUpdate(
+                site_id     = u.get("site_id", "unknown"),
+                gradient    = u.get("gradient", []),
+                param_dim   = len(u.get("gradient", [])),
+                step        = int(u.get("step", 0)),
+                performance = float(u.get("performance", 0.0)),
+                n_samples   = int(u.get("n_samples", 1)),
+            ))
+        result = _get_byzantine().aggregate(updates, data.get("method"))
+        return jsonify({"status": "ok", "result": result.to_dict()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/federated/params", methods=["GET"])
+def federated_params():
+    """GET /federated/params — export current global parameters"""
+    try:
+        return jsonify({"status": "ok",
+                        "params": _get_byzantine().export_global_params()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/federated/anomalies", methods=["GET"])
+def federated_anomalies():
+    """GET /federated/anomalies — Byzantine anomaly log"""
+    try:
+        limit = int(request.args.get("limit", 50))
+        return jsonify({"status": "ok",
+                        "anomalies": _get_byzantine().get_anomaly_log(limit)})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/federated/leaderboard", methods=["GET"])
+def federated_leaderboard():
+    """GET /federated/leaderboard — site trust score leaderboard"""
+    try:
+        return jsonify({"status": "ok",
+                        "leaderboard": _get_byzantine().get_site_leaderboard()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/federated/stats", methods=["GET"])
+def federated_stats():
+    """GET /federated/stats — federated aggregator statistics"""
+    try:
+        return jsonify({"status": "ok", "stats": _get_byzantine().get_stats()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+# ── Mutation Governance Pipeline ──────────────────────────────────────────────
+
+@app.route("/governance/begin", methods=["POST"])
+def governance_begin():
+    """POST /governance/begin — start mutation governance pipeline"""
+    data = request.get_json() or {}
+    try:
+        mid = _get_governance().begin_mutation(
+            plc_program  = data.get("plc_program", "UNKNOWN"),
+            param_deltas = data.get("param_deltas", {}),
+        )
+        return jsonify({"status": "ok", "mutation_id": mid,
+                        "next_step": 1, "total_steps": 11})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/governance/step", methods=["POST"])
+def governance_step():
+    """POST /governance/step — execute next pipeline step"""
+    data = request.get_json() or {}
+    try:
+        result = _get_governance().run_step(
+            mutation_id = data.get("mutation_id", ""),
+            step_id     = int(data.get("step_id", 1)),
+            context     = data.get("context", {}),
+        )
+        return jsonify({"status": "ok", "result": result})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/governance/approve", methods=["POST"])
+def governance_approve():
+    """POST /governance/approve — Step 8 human approval gate (Baron Marco Paolo Ialongo only)"""
+    data = request.get_json() or {}
+    try:
+        result = _get_governance().approve(
+            mutation_id   = data.get("mutation_id", ""),
+            approval_code = data.get("approval_code", ""),
+        )
+        return jsonify({"status": "ok", "result": result})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/governance/release", methods=["POST"])
+def governance_release():
+    """POST /governance/release — Step 11 production key release"""
+    data = request.get_json() or {}
+    try:
+        result = _get_governance().release_production_key(
+            data.get("mutation_id", "")
+        )
+        return jsonify({"status": "ok", "result": result})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/governance/mutation/<mutation_id>", methods=["GET"])
+def governance_mutation(mutation_id):
+    """GET /governance/mutation/<id> — get mutation pipeline record"""
+    try:
+        m = _get_governance().get_mutation(mutation_id)
+        if not m:
+            return jsonify({"status": "error", "error": "Not found"}), 404
+        return jsonify({"status": "ok", "mutation": m})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/governance/list", methods=["GET"])
+def governance_list():
+    """GET /governance/list — list mutations with optional status filter"""
+    try:
+        status = request.args.get("status")
+        limit  = int(request.args.get("limit", 50))
+        return jsonify({"status": "ok",
+                        "mutations": _get_governance().list_mutations(status, limit)})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+@app.route("/governance/stats", methods=["GET"])
+def governance_stats():
+    """GET /governance/stats — governance engine statistics"""
+    try:
+        return jsonify({"status": "ok", "stats": _get_governance().get_stats()})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# IMPORT TIME HELPER
+# ─────────────────────────────────────────────────────────────────────────────
+import time as _time_mod
+time = _time_mod
+
+
 # ERROR HANDLERS
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1059,7 +2130,7 @@ def not_found(_):
     return jsonify({
         "status":  "error",
         "error":   "Endpoint not found",
-        "version": "4.0",
+        "version": "4.1",
         "modules": {
             "v2.1 Sentinel Intelligence (6 modules, 17 endpoints)": [
                 "POST /sentinel/extract", "POST /sentinel/debate",
@@ -1097,8 +2168,30 @@ def not_found(_):
                 "POST /ciec-rl/act",           "POST /ciec-rl/observe",
                 "POST /ciec-rl/update",        "GET  /ciec-rl/stats",
             ],
+            "v4.1 Advanced CIEC (7 modules, 28 endpoints)": [
+                "POST /td3/act",               "POST /td3/observe",
+                "POST /td3/update",            "POST /td3/reward",
+                "GET  /td3/stats",
+                "POST /ast/parse",             "POST /ast/patterns",
+                "POST /ast/graphs",            "GET  /ast/stats",
+                "POST /physics/step",          "POST /physics/episode",
+                "POST /physics/evaluate-mutation","GET  /physics/stats",
+                "GET  /vmware/vms",            "POST /vmware/snapshot",
+                "POST /vmware/clone",          "POST /vmware/mutation/begin",
+                "POST /vmware/mutation/promote","GET  /vmware/audit",
+                "GET  /vmware/stats",
+                "POST /formal/lyapunov",       "POST /formal/barrier",
+                "GET  /formal/ledger",         "GET  /formal/stats",
+                "POST /federated/register",    "POST /federated/aggregate",
+                "GET  /federated/params",      "GET  /federated/anomalies",
+                "GET  /federated/leaderboard", "GET  /federated/stats",
+                "POST /governance/begin",      "POST /governance/step",
+                "POST /governance/approve",    "POST /governance/release",
+                "GET  /governance/mutation/<id>","GET  /governance/list",
+                "GET  /governance/stats",
+            ],
         },
-        "total_endpoints": 59,
+        "total_endpoints": 87,
         "system_health":   "GET /health",
     }), 404
 
@@ -1109,9 +2202,9 @@ def not_found(_):
 
 if __name__ == "__main__":
     logger.info("╔══════════════════════════════════════════════════════════════╗")
-    logger.info("║  KISWARM v4.0 — CIEC Cognitive Industrial Evolution Core    ║")
-    logger.info("║  Port: 11436  |  Modules: 16  |  Endpoints: 59            ║")
-    logger.info("║  v2.1: Sentinel  v3.0: Industrial AI  v4.0: CIEC          ║")
-    logger.info("║  PLC Parser · SCADA · Physics Twin · Rules · KG · RL      ║")
+    logger.info("║  KISWARM v4.1 — Advanced CIEC with TD3/AST/Formal/VMware   ║")
+    logger.info("║  Port: 11436  |  Modules: 23  |  Endpoints: 87            ║")
+    logger.info("║  v2.1→v4.0: 59 endpoints  +  v4.1: TD3·AST·FV·VMware     ║")
+    logger.info("║  TD3-RL · IEC61131-AST · Physics · VMware · Formal · Gov  ║")
     logger.info("╚══════════════════════════════════════════════════════════════╝")
     app.run(host="127.0.0.1", port=11436, debug=False, threaded=True)
