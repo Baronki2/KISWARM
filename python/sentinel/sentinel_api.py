@@ -2692,9 +2692,146 @@ def not_found(e):
 # ENTRY POINT
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.3 — ICS CYBERSECURITY ENGINE + OT NETWORK MONITOR (Modules 29-30)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+from .ics_security import ICSSecurityEngine
+from .ot_network_monitor import OTNetworkMonitor
+
+_security = ICSSecurityEngine()
+_ot_monitor = OTNetworkMonitor()
+
+
+# ── Module 29: ICS Security Engine ───────────────────────────────────────────
+
+@app.route("/security/scan-plc", methods=["POST"])
+def security_scan_plc():
+    d = request.get_json() or {}
+    source = d.get("source", "")
+    program_name = d.get("program_name", "unknown")
+    asset_id = d.get("asset_id", "unknown")
+    if not source:
+        return jsonify({"error": "source required"}), 400
+    return jsonify(_security.scan_plc(source, program_name, asset_id))
+
+
+@app.route("/security/network-event", methods=["POST"])
+def security_network_event():
+    d = request.get_json() or {}
+    result = _security.ingest_network_event(
+        asset_id=d.get("asset_id", "unknown"),
+        protocol=d.get("protocol", "unknown"),
+        command=d.get("command", "read"),
+        src_ip=d.get("src_ip", "0.0.0.0"),
+        rate_hz=float(d.get("rate_hz", 1.0)),
+    )
+    return jsonify(result)
+
+
+@app.route("/security/posture", methods=["GET"])
+def security_posture():
+    return jsonify(_security.get_posture())
+
+
+@app.route("/security/iec62443-assess", methods=["POST"])
+def security_iec62443_assess():
+    d = request.get_json() or {}
+    asset_id = d.get("asset_id", "unknown")
+    target_sl = int(d.get("target_sl", 2))
+    controls = d.get("controls_present", [])
+    scada_cfg = d.get("scada_config", None)
+    return jsonify(_security.iec62443_assess(asset_id, target_sl, controls, scada_cfg))
+
+
+@app.route("/security/incidents", methods=["GET"])
+def security_incidents():
+    limit = int(request.args.get("limit", 50))
+    return jsonify({"incidents": _security.get_incidents(limit)})
+
+
+@app.route("/security/cve-lookup", methods=["GET"])
+def security_cve_lookup():
+    protocol = request.args.get("protocol", "generic")
+    return jsonify({"cves": _security.cve_lookup(protocol)})
+
+
+@app.route("/security/scada-config-check", methods=["POST"])
+def security_scada_config_check():
+    d = request.get_json() or {}
+    asset_id = d.get("asset_id", "unknown")
+    config = d.get("config", {})
+    return jsonify(_security.assess_scada_config(asset_id, config))
+
+
+@app.route("/security/stats", methods=["GET"])
+def security_stats():
+    return jsonify(_security.get_stats())
+
+
+@app.route("/security/ledger", methods=["GET"])
+def security_ledger():
+    limit = int(request.args.get("limit", 50))
+    return jsonify(_security.get_ledger(limit))
+
+
+# ── Module 30: OT Network Monitor ────────────────────────────────────────────
+
+@app.route("/ot-monitor/segment", methods=["POST"])
+def ot_register_segment():
+    d = request.get_json() or {}
+    seg_id = d.get("segment_id")
+    if not seg_id:
+        return jsonify({"error": "segment_id required"}), 400
+    result = _ot_monitor.register_segment(
+        segment_id=seg_id,
+        subnet=d.get("subnet", "0.0.0.0/0"),
+        protocols=d.get("protocols", []),
+        permitted_hours=d.get("permitted_hours"),
+    )
+    return jsonify(result), 201
+
+
+@app.route("/ot-monitor/packet", methods=["POST"])
+def ot_ingest_packet():
+    d = request.get_json() or {}
+    alerts = _ot_monitor.ingest_packet(
+        segment_id=d.get("segment_id", "default"),
+        protocol=d.get("protocol", "unknown"),
+        function_code=int(d.get("function_code", 0)),
+        src=d.get("src", "0.0.0.0"),
+        dst=d.get("dst", "0.0.0.0"),
+        payload_bytes=int(d.get("payload_bytes", 0)),
+        rate_hz=float(d.get("rate_hz", 1.0)),
+    )
+    return jsonify({"alerts_raised": len(alerts), "alerts": [a.to_dict() for a in alerts]})
+
+
+@app.route("/ot-monitor/alerts", methods=["GET"])
+def ot_get_alerts():
+    seg_id = request.args.get("segment_id")
+    limit = int(request.args.get("limit", 50))
+    return jsonify({"alerts": _ot_monitor.get_alerts(seg_id, limit)})
+
+
+@app.route("/ot-monitor/baseline/<segment_id>", methods=["GET"])
+def ot_get_baseline(segment_id):
+    return jsonify(_ot_monitor.get_baseline(segment_id))
+
+
+@app.route("/ot-monitor/segments", methods=["GET"])
+def ot_get_segments():
+    return jsonify({"segments": _ot_monitor.get_segments()})
+
+
+@app.route("/ot-monitor/stats", methods=["GET"])
+def ot_get_stats():
+    return jsonify(_ot_monitor.get_stats())
+
+
 if __name__ == "__main__":
     logger.info("╔══════════════════════════════════════════════════════════════╗")
-    logger.info("║  KISWARM v4.2 — XAI · PdM · MultiAgent · SIL · DigThread  ║")
-    logger.info("║  Port: 11436  |  Modules: 28  |  Endpoints: 133           ║")
+    logger.info("║  KISWARM v4.3 — ICS Cybersecurity + OT Network Monitor     ║")
+    logger.info("║  Port: 11436  |  Modules: 30  |  Endpoints: 148           ║")
     logger.info("╚══════════════════════════════════════════════════════════════╝")
     app.run(host="127.0.0.1", port=11436, debug=False, threaded=True)

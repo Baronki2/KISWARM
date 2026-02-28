@@ -1,24 +1,784 @@
-# 🏭 KISWARM v4.1 — Industrial AI Governance Platform
+# 🌟 KISWARM v4.3 — Cognitive Industrial Evolution Core + Industrial Cybersecurity
 
-> **Cognitive Industrial Evolution Core with TD3 Reinforcement Learning, Full IEC 61131-3 AST Parsing, Formal Stability Verification, VMware Orchestration, Byzantine-Tolerant Federated Aggregation, and 11-Step Mutation Governance Pipeline**
+> **ETERNAL SWARM EVOLUTION SYSTEM** — Enterprise Military Standard Edition  
+> *Production-Hardened · Self-Healing · Industrial Cognitive AI · 948 Tests Passing · IEC 62443 Secured*  
+> **Architect:** Baron Marco Paolo Ialongo
 
-[![Tests](https://img.shields.io/badge/tests-572%20passing-brightgreen)]()
-[![Modules](https://img.shields.io/badge/modules-23-blue)]()
-[![Endpoints](https://img.shields.io/badge/endpoints-99-blue)]()
-[![Version](https://img.shields.io/badge/version-4.1-orange)]()
+[![Version](https://img.shields.io/badge/version-4.3-CIEC+SEC-blue.svg)](https://github.com/Baronki2/KISWARM)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![CI](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml/badge.svg)](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-948%20passing-success.svg)](tests/)
+[![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg)](README.md)
+[![Endpoints](https://img.shields.io/badge/REST%20endpoints-148-orange.svg)](python/sentinel/sentinel_api.py)
+[![Modules](https://img.shields.io/badge/AI%20modules-30-purple.svg)](python/sentinel/)
+
+---
+
+## 🎯 What is KISWARM?
+
+KISWARM is a **complete, self-managing AI governance + industrial cognitive platform** that combines:
+- **Autonomous AI Swarm** — 27+ local LLM models via Ollama with persistent vector memory
+- **CIEC Cognitive Industrial Core** — PLC semantic understanding, SCADA observation, digital twin physics, constraint safety, cross-project knowledge graph, and bounded constrained RL
+
+Running **100% locally**, zero cloud dependency. Pure engineering. No philosophy.
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                 KISWARM v4.0 COMPLETE ARCHITECTURE               │
+│                 CIEC + SWARM INTELLIGENCE PLATFORM               │
+└──────────────────────────────────────────────────────────────────┘
+                               │
+    ┌──────────────────────────┼──────────────────────────┐
+    ▼                          ▼                          ▼
+┌─────────┐             ┌──────────┐             ┌────────────────┐
+│ VM-1    │             │ VM-2     │             │ VM-3           │
+│ PLC +   │◄──OPC UA───►│ CIEC     │◄──REST API─►│ Digital Twin   │
+│ SCADA   │             │ Core     │             │ Physics Engine │
+│ Runtime │             │ (Port    │             │ Simulation     │
+└─────────┘             │ 11436)   │             └────────────────┘
+                        └──────────┘
+                               │
+         ┌─────────────────────┼─────────────────────┐
+         ▼                     ▼                     ▼
+   ┌──────────┐          ┌──────────┐          ┌──────────┐
+   │ Ollama   │          │ Qdrant   │          │ Tool     │
+   │ :11434   │          │ Memory   │          │ Proxy    │
+   │ 27+      │          │ Vector   │          │ :11435   │
+   │ Models   │          │ DB       │          │ Flask    │
+   └──────────┘          └──────────┘          └──────────┘
+```
+
+**Core Design Principle:**
+```
+PLC  = deterministic reflex layer   (never touched by AI)
+CIEC = adaptive cognition layer     (sits above PLC, observes, suggests)
+Never invert that hierarchy.
+```
 
 ---
 
-## Version History
+## 🆕 v4.0 CIEC — What's New (6 New Modules, 21 New Endpoints, 120 New Tests)
 
-| Version | Modules | Endpoints | Tests | Key Features |
-|---------|---------|-----------|-------|--------------|
-| v2.1 | 11 | 29 | 180 | Firewall, Decay, Ledger, Conflict |
-| v3.0 | 15 | 42 | 280 | Fuzzy PID, Constrained RL, Digital Twin |
-| v4.0 | 16 | 59 | 430 | PLC Parser, SCADA, CIEC Twin, Knowledge Graph |
-| **v4.1** | **23** | **99** | **572** | **TD3, AST, Physics, VMware, Formal, Byzantine, Governance** |
+| Module | Name | Purpose |
+|---|---|---|
+| **11** | PLC Semantic Parser | IEC 61131-3 ST → CIR + DSG + PID/interlock/watchdog |
+| **12** | SCADA/OPC Observer | Real-time tag streaming + SQL historian + state vector |
+| **13** | Digital Twin Physics | Thermal · Pump · Battery · Power · Fault injection |
+| **14** | Rule Constraint Engine | Absolute safety layer — overrides all RL/fuzzy output |
+| **15** | Knowledge Graph | Cross-project PID configs · failure signatures · federated sync |
+| **16** | Industrial Actor-Critic RL | Constrained bounded parameter-shift optimization |
 
 ---
+
+## ✨ Feature Matrix — All Versions (v1.1 → v4.3)
+
+| Feature | v1.1 | v2.1 | v2.2 | v3.0 | v4.0 | v4.1 | v4.2 | **v4.3** |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Persistent Vector Memory (Qdrant) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Tool Injection Proxy (:11435) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Monitoring Dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Self-Healing (Systemd) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Governance + Audit Logging | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 27+ Ollama Models | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Test Coverage | 111 | 148 | 205 | 310 | 430 | 572 | 729 | **948** |
+| REST API Endpoints | — | 5 | 17 | 29 | 59 | 99 | 133 | **148** |
+| Sentinel Bridge (AKE) | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Swarm Debate Engine | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Semantic Conflict Detection | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Knowledge Decay Engine | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Cryptographic Knowledge Ledger | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Adversarial Prompt Firewall | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Fuzzy Membership Auto-Tuner | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Constrained RL (CMDP) | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Digital Twin Mutation Pipeline | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Federated Adaptive Mesh | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PLC Semantic Parser | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| SCADA/OPC Observer | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Physics Twin Engine | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Rule Constraint Engine | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Cross-Project Knowledge Graph | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Industrial Actor-Critic RL | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| TD3 Industrial Controller | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| IEC 61131-3 AST Parser | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Extended Physics Twin (RK4) | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| VMware Orchestration | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Formal Stability Verification | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| Byzantine Federated Aggregation | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| 11-Step Mutation Governance | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| XAI / KernelSHAP Explainability | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Predictive Maintenance (RUL) | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Multi-Agent Plant Coordinator | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| IEC 61508 SIL Verification | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Digital Thread Tracker | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **ICS Cybersecurity (IEC 62443)** | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ NEW** |
+| **OT Network Monitor (passive)** | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ NEW** |
+
+---
+
+## 🚀 Quick Start — 3 Commands
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Baronki2/KISWARM.git && cd KISWARM
+
+# 2. Run the 10-phase automated deployment (15–20 minutes)
+chmod +x deploy/kiswarm_deploy.sh && ./deploy/kiswarm_deploy.sh
+
+# 3. Activate and verify
+source ~/.bashrc && kiswarm-health && sys-nav
+```
+
+**System is fully operational when you see:** `Overall Health: 90%+` ✅
+
+---
+
+## ⚙️ v4.0 CIEC — SIX COGNITIVE INDUSTRIAL MODULES
+
+> *"You are not building AI that controls a plant. You are building a Cognitive Overlay Engine sitting on top of deterministic PLC infrastructure."*
+
+---
+
+### Module 11 — PLC Semantic Parser (`plc_parser.py`)
+
+Understands existing PLC logic without touching it. Parses **IEC 61131-3 Structured Text** into a structured semantic representation.
+
+**Three-stage pipeline:**
+
+```
+Stage 1 — Tokenize
+  Raw ST source → token stream
+  Handles: PROGRAM/END_PROGRAM, VAR blocks, IF/ELSE/END_IF,
+           function calls, assignments, expressions
+
+Stage 2 — Build CIR (Canonical Intermediate Representation)
+  Token stream → CIR Nodes
+  
+  CIRNode {
+    node_id:    "N0012"
+    node_type:  IF | ASSIGN | FB_CALL | COMPARE | TON | ...
+    inputs:     [signal names read]
+    outputs:    [signals written]
+    safety_flag: True if condition involves E-STOP/FAULT/etc.
+    params:     {condition, rhs, ...}
+  }
+
+Stage 3 — Build DSG (Directed Signal Graph)
+  CIR nodes → directed edges (data flow)
+  Feedback detection: output of node A → input of node A (control loop)
+```
+
+**Pattern detectors:**
+
+| Pattern | What it finds |
+|---|---|
+| PID blocks | `PID(SP:=..., PV:=..., KP:=..., KI:=..., KD:=...)` |
+| Interlocks | IF-conditions referencing ESTOP/FAULT/SAFETY signals |
+| Watchdogs | WD_* named instances, TON/WD timers |
+| Safety flags | BOOL variables with E-STOP/SAFETY/ALARM in name |
+
+```python
+parser = PLCSemanticParser()
+result = parser.parse(st_source_code, "PumpControl")
+
+result.pid_blocks[0].kp          # 1.2
+result.interlocks[0].condition   # "ESTOP OR fault_flag"
+result.watchdogs[0].type         # "watchdog_timer"
+result.source_hash               # SHA-256[:16] for KG linking
+```
+
+**REST API:**
+```bash
+curl -X POST http://localhost:11436/plc/parse \
+  -d '{"source": "PROGRAM PumpCtrl\n...\nEND_PROGRAM", "program_name": "PumpCtrl"}'
+
+curl http://localhost:11436/plc/stats
+```
+
+---
+
+### Module 12 — SCADA/OPC/SQL Observer (`scada_observer.py`)
+
+Observes live plant state without binding to RS-485 drivers.
+
+**Data ingestion:**
+
+```
+OPC UA real-time:   push_reading("temperature", 45.2, timestamp)
+OPC snapshot:       push_snapshot({"pressure": 3.0, "flow": 12.5})
+SQL historian:      ingest_history([{"tag": "t1", "value": 1.0, "timestamp": ...}])
+```
+
+**Feature extraction (12 features per tag):**
+
+```
+TagFeatures {
+  mean              overshoot_ratio
+  variance          settling_time_estimate
+  min / max         thermal_drift
+  switching_freq    deadband_crossings
+  actuator_cycles   utilization_rate
+  derivative        peak_load
+}
+```
+
+**State vector builder:**
+
+```
+S(t) = [timestamp, alarm_count, feat₁...feat₁₂, feat₁...feat₁₂, ...]
+                                ←───── 12 per tag ────────────────────→
+```
+
+**REST API:**
+```bash
+curl -X POST http://localhost:11436/scada/push -d '{"tag":"pressure","value":3.2}'
+curl -X POST http://localhost:11436/scada/ingest-history -d '{"records":[...]}'
+curl http://localhost:11436/scada/state
+curl "http://localhost:11436/scada/anomalies?threshold=3.0"
+```
+
+---
+
+### Module 13 — Digital Twin Physics Engine (`physics_twin.py`)
+
+Simulates plant physics **without touching real actuators**. Mutation candidates are validated here before any deployment.
+
+**Four physics modules:**
+
+```
+ThermalState:
+  dT/dt = (Q_in − k_loss × (T − T_env)) / C_thermal
+  T_{t+1} = T_t + Δt × dT/dt
+
+PumpState (Bernoulli):
+  flow = k_flow × √(ΔP)
+  cavitation = NPSH_available < NPSH_required
+
+BatteryState (Hybrid ECM):
+  SOC_{t+1} = SOC_t + (I_charge − I_discharge) / Capacity
+  V = OCV(SOC) − I × R_internal
+  Thermal: dT/dt = (I²R − cooling) / C
+
+PowerRoutingState:
+  P_mismatch = Σloads − Σgeneration
+  Δf ≈ P_mismatch / (2 × H_inertia)
+```
+
+**Fault injection engine:**
+
+| Fault Category | Examples |
+|---|---|
+| Sensor faults | stuck-at · drift · noise spike |
+| Actuator faults | delayed response · partial fail · full fail |
+| Physical faults | heat exchanger drop · cavitation · battery resistance rise |
+
+**Mutation evaluation pipeline:**
+```python
+twin = PhysicsTwin()
+promote, metrics = twin.evaluate_mutation(
+    {"q_in": 2200, "dp": 2.5},
+    n_runs=5   # Monte Carlo over n independent episodes
+)
+# promote = True only if: zero hard violations + improved survival score
+```
+
+**REST API:**
+```bash
+curl -X POST http://localhost:11436/ciec-twin/run \
+  -d '{"steps":100,"dt":0.1,"inject_faults":true}'
+curl -X POST http://localhost:11436/ciec-twin/evaluate \
+  -d '{"params":{"q_in":2200,"dp":2.5},"n_runs":5}'
+```
+
+---
+
+### Module 14 — Rule Constraint Engine (`rule_engine.py`)
+
+**Absolute safety layer.** Sits between RL output and the PLC parameter space. Hard constraints block actions entirely. Soft constraints penalize the RL reward.
+
+**Built-in constraints (10 default):**
+
+| Constraint | Type | Condition | Penalty |
+|---|---|---|---|
+| `OVERPRESSURE_BLOCK` | Hard | pressure > 8 bar | 10⁶ |
+| `BATTERY_CRITICAL_BLOCK` | Hard | SOC < 15% | 10⁶ |
+| `OVERTEMP_BLOCK` | Hard | temperature > 95°C | 10⁶ |
+| `FREQUENCY_DEVIATION_BLOCK` | Hard | |f − 50Hz| > 2.5 | 10⁶ |
+| `ACTUATOR_WEAR_BLOCK` | Hard | wear_index > 0.95 | 10⁶ |
+| `PID_KP_BOUND` | Hard | |Δkp| > 5% | 10⁶ |
+| `PID_KI_BOUND` | Hard | |Δki| > 5% | 10⁶ |
+| `HIGH_PRESSURE_WARNING` | Soft | pressure > 6.5 bar | 500 |
+| `RELAY_OVERCYCLING_PENALTY` | Soft | switching > 2 Hz | 200 |
+| `BATTERY_LOW_WARNING` | Soft | SOC < 25% | 300 |
+
+**Action clamping** — even if constraint allows, action is bounded:
+```
+delta_kp, delta_ki, delta_kd  ∈ [−5%, +5%]
+delta_threshold                ∈ [−10%, +10%]
+delta_schedule                 ∈ [−20%, +20%]
+delta_energy_w                 ∈ [−15%, +15%]
+```
+
+```python
+engine = RuleConstraintEngine()
+result = engine.validate(state, action)
+# result.allowed         True/False
+# result.hard_violations ["OVERPRESSURE_BLOCK", ...]
+# result.total_penalty   1000000.0
+# result.action_after    clamped action dict
+# result.check_time_us   < 100μs typical
+```
+
+**REST API:**
+```bash
+curl -X POST http://localhost:11436/constraints/validate \
+  -d '{"state":{"pressure":3.2,"battery_soc":0.85},"action":{"delta_kp":0.02}}'
+curl -X POST http://localhost:11436/constraints/check-state \
+  -d '{"state":{"pressure":9.5}}'   # → {"safe": false}
+curl http://localhost:11436/constraints/list
+curl http://localhost:11436/constraints/stats
+```
+
+---
+
+### Module 15 — Cross-Project Knowledge Graph (`knowledge_graph.py`)
+
+The **real differentiator.** Learns across multiple PLC versions, sites, and years. Detects: *"You solved this pump cavitation 4 times in 8 years. Here is the unified design block."*
+
+**Node types:**
+
+| Kind | Contains |
+|---|---|
+| `PIDConfig` | Proven Kp/Ki/Kd + plant type + performance history |
+| `FailureSig` | Symptom list + root cause + fix template |
+| `OptTemplate` | Problem class + solution + measured gain |
+| `DesignBlock` | Reusable functional block pattern |
+| `PlantProfile` | Site-specific plant characteristics |
+
+**Similarity engine:**
+```
+cosine_sim(v₁, v₂) = (v₁·v₂) / (|v₁|×|v₂|)
+jaccard_sim(t₁, t₂) = |t₁∩t₂| / |t₁∪t₂|   (tag overlap)
+combined = 0.7 × cosine + 0.3 × jaccard
+```
+
+**Federated sync (no raw telemetry ever transmitted):**
+```python
+# Site A exports signed diff bundle
+bundle = site_a_kg.export_diff_bundle(since_timestamp=last_sync)
+# bundle_sig = SHA-256(site_id + timestamp + nodes)[:24]
+
+# Site B imports and verifies
+imported = site_b_kg.import_diff_bundle(bundle)
+# 0 if signature fails → never imports unsigned knowledge
+```
+
+```python
+kg = KnowledgeGraph(site_id="PLANT_MUNICH")
+node = kg.add_pid_config("Pump-A PID", kp=1.2, ki=0.3, kd=0.05, ...)
+matches = kg.find_by_symptoms(["pressure_drop", "high_vibration"])
+patterns = kg.detect_recurring_patterns(min_occurrences=2)
+# patterns[0] → {"symptom_set": ["pressure_drop"], "occurrences": 4, "sites": [...]}
+```
+
+**REST API:**
+```bash
+curl -X POST http://localhost:11436/kg/add-pid \
+  -d '{"title":"Pump PID","kp":1.2,"ki":0.3,"kd":0.05,"plant_type":"pump"}'
+curl -X POST http://localhost:11436/kg/find-by-symptoms \
+  -d '{"symptoms":["pressure_drop","vibration"]}'
+curl http://localhost:11436/kg/recurring-patterns?min_occurrences=2
+curl http://localhost:11436/kg/export-bundle
+curl -X POST http://localhost:11436/kg/import-bundle -d '{"bundle":{...}}'
+```
+
+---
+
+### Module 16 — Industrial Actor-Critic RL (`actor_critic.py`)
+
+**Constrained Actor-Critic with Lagrangian Penalty** — specifically designed for industrial parameter mutation, not generic RL.
+
+**Architecture:**
+```
+State S_t ∈ ℝ^N (150–600 features)
+   ↓
+SharedEncoder: Dense(64,ReLU) → Dense(64,ReLU) → Z_t (64-dim)
+   ↙                                              ↘
+ActorHead                                     CriticHead
+μ_i = tanh(W_i × Z_t)                        V(s_t) = Dense(32,ReLU) → scalar
+σ_i = softplus(W'_i × Z_t)
+a_i = μ_i + σ_i × ε,  ε~N(0,1)
+a_i = clip(a_i, PLC_BOUNDS[name])
+```
+
+**Action space (PLC-safe parameter shifts ONLY):**
+```python
+PLC_BOUNDS = {
+    "delta_kp":        (-0.05, +0.05),   # PID proportional ±5%
+    "delta_ki":        (-0.05, +0.05),   # PID integral ±5%
+    "delta_kd":        (-0.05, +0.05),   # PID derivative ±5%
+    "delta_threshold": (-0.10, +0.10),   # Threshold ±10%
+    "delta_schedule":  (-0.20, +0.20),   # Schedule shift ±20%
+    "delta_energy_w":  (-0.15, +0.15),   # Energy routing ±15%
+}
+```
+
+**Reward function:**
+```
+R = α × stability_score   (α=0.40)   = 1/(1+variance)
+  + β × efficiency_score  (β=0.30)   = 1 − energy_waste
+  − γ × actuator_cycles   (γ=0.15)
+  − δ × boundary_violation (δ=0.10)
+  − ε × oscillation        (ε=0.05)  = |d(output)/dt|
+```
+
+**Constrained update (Lagrangian):**
+```
+L_total = L_policy + c₁×L_value − c₂×Entropy + Σ λᵢ×ConstraintViolation_i
+
+λᵢ_{t+1} = max(0, λᵢ_t + η_λ × (E[Cᵢ] − d))
+```
+λ rises when constraints violated → policy learns to avoid them.
+
+**Action shielding:** Every action passes through `RuleConstraintEngine` before application. If blocked → zero-action (no parameter change) is used instead. Shield rate tracked in stats.
+
+```python
+ac = IndustrialActorCritic(state_dim=32)
+action, info = ac.select_action(state_vector, shield=rule_engine)
+# action = {"delta_kp": 0.021, "delta_ki": -0.008, ...}
+# info   = {"shielded": False, "step": 142}
+```
+
+**REST API:**
+```bash
+curl -X POST http://localhost:11436/ciec-rl/act \
+  -d '{"state":[0.1,0.2,...32 floats...],"shield":true}'
+curl -X POST http://localhost:11436/ciec-rl/observe \
+  -d '{"state":[...],"action":[...],"reward":0.8,"cost":0.0}'
+curl -X POST http://localhost:11436/ciec-rl/update -d '{"batch_size":64}'
+curl http://localhost:11436/ciec-rl/stats
+```
+
+---
+
+## 🔗 CIEC Full Cycle — End-to-End Pipeline
+
+```
+1. Parse PLC logic
+   POST /plc/parse  →  PID params, interlock graph, watchdog timers
+   Extracted PID configs stored in Knowledge Graph via /kg/add-pid
+
+2. Observe plant in real-time
+   POST /scada/push  →  tag readings every 50–200ms
+   GET  /scada/state →  S(t) = plant state vector (input to RL)
+
+3. Check safety before any action
+   POST /constraints/validate  →  allowed? penalty? clamped action?
+   POST /constraints/check-state → is current state safe?
+
+4. RL selects bounded parameter shift
+   POST /ciec-rl/act  →  delta_kp=+0.02, delta_ki=-0.01, ...
+   (automatically shielded through constraint engine)
+
+5. Validate mutation in digital twin BEFORE deploying
+   POST /ciec-twin/evaluate  →  promoted? survival_score? fault_survival?
+
+6. If promoted → apply to PLC parameter space via OPC UA
+
+7. Record outcome in Knowledge Graph
+   POST /kg/add-pid  (if promoted)
+   → failure signature if rejected
+
+8. Sync knowledge to other sites
+   GET  /kg/export-bundle → signed diff bundle
+   POST /kg/import-bundle (at remote site) → cross-site learning
+
+9. Feed transition to RL buffer and train
+   POST /ciec-rl/observe  →  reward computed from stability+efficiency
+   POST /ciec-rl/update   →  Lagrangian actor-critic gradient step
+```
+
+---
+
+## 📡 Complete REST API Reference (59 Endpoints)
+
+### v2.1 — Sentinel Intelligence (5 endpoints)
+```
+POST /sentinel/extract          Trigger autonomous knowledge extraction
+POST /sentinel/debate           Swarm Debate for conflicting sources
+GET  /sentinel/search           Search swarm knowledge memory
+GET  /sentinel/status           Engine health + statistics
+GET  /health                    Service ping
+```
+
+### v2.2 — Advanced Intelligence Modules (12 endpoints)
+```
+POST /firewall/scan             Adversarial content scan
+GET  /decay/scan                Knowledge decay scan
+GET  /decay/record/<hash_id>    Single entry confidence
+POST /decay/revalidate          Reset after revalidation
+GET  /ledger/status             Merkle root + entry count
+GET  /ledger/verify             Full tamper detection
+GET  /ledger/proof/<hash_id>    Merkle inclusion proof
+POST /conflict/analyze          Contradiction cluster analysis
+POST /conflict/quick            Two-text cosine similarity check
+GET  /tracker/leaderboard       Model ELO + reliability ranking
+GET  /tracker/model/<n>         Per-model statistics
+POST /tracker/validate          Post-hoc validation
+POST /guard/assess              Retrieval trust assessment
+```
+
+### v3.0 — Industrial AI (13 endpoints)
+```
+POST /fuzzy/classify            Classify input using fuzzy sets
+POST /fuzzy/update              Update fuzzy output with feedback
+POST /fuzzy/tune                Trigger auto-tuning step (gradient/evolutionary)
+GET  /fuzzy/stats               Membership function parameters
+
+POST /rl/act                    Get RL action (CMDP with safety layer)
+POST /rl/learn                  Constrained policy + value update
+GET  /rl/stats                  RL training statistics
+
+POST /twin/evaluate             Evaluate mutation candidate (Monte Carlo EVT)
+GET  /twin/stats                Twin simulation statistics
+
+POST /mesh/register             Register node in federated mesh
+POST /mesh/share                Share parameter delta (Byzantine-protected)
+GET  /mesh/leaderboard          Trust-weighted node ranking
+GET  /mesh/stats                Global mesh statistics
+```
+
+### v4.0 — CIEC Cognitive Industrial Core (28 endpoints) 🆕
+```
+POST /plc/parse                 Parse IEC 61131-3 ST → CIR + DSG
+GET  /plc/stats                 Parser cache statistics
+
+POST /scada/push                Ingest real-time OPC tag readings
+POST /scada/ingest-history      Batch ingest SQL historian records
+GET  /scada/state               Current plant state vector S(t)
+GET  /scada/anomalies           Tags with anomalous z-scores
+GET  /scada/stats               Observer statistics
+
+POST /ciec-twin/run             Run physics simulation episode
+POST /ciec-twin/evaluate        Evaluate mutation candidate
+GET  /ciec-twin/stats           Twin run statistics
+
+POST /constraints/validate      Validate action against all constraints
+POST /constraints/check-state   Quick hard-constraint state check
+GET  /constraints/list          All registered constraints
+GET  /constraints/violations    Recent violation audit log
+GET  /constraints/stats         Block rate + violation categories
+
+POST /kg/add-pid                Store proven PID configuration
+POST /kg/add-failure            Record failure signature + fix template
+POST /kg/find-similar           Vector similarity search
+POST /kg/find-by-symptoms       Match failure signatures to symptoms
+GET  /kg/recurring-patterns     Cross-project recurring problem detection
+GET  /kg/export-bundle          Signed knowledge diff for federated sync
+POST /kg/import-bundle          Import verified knowledge from remote site
+GET  /kg/nodes                  List knowledge graph nodes
+GET  /kg/stats                  Graph statistics
+
+POST /ciec-rl/act               Constrained bounded parameter-shift action
+POST /ciec-rl/observe           Feed transition to replay buffer
+POST /ciec-rl/update            Lagrangian actor-critic gradient update
+GET  /ciec-rl/stats             RL statistics + PLC bounds
+```
+
+---
+
+## 📦 Complete Repository Structure
+
+```
+KISWARM/
+│
+├── 📁 deploy/
+│   └── kiswarm_deploy.sh           # 10-phase automated deployment
+│
+├── 📁 scripts/
+│   ├── start_all_services.sh       # Master service orchestrator
+│   ├── sentinel_trigger.sh         # Sentinel CLI + CKM integration
+│   ├── cleanup_old_backups.sh      # 30-day backup rotation
+│   ├── health_check.sh             # 40+ diagnostic checks
+│   ├── system_navigation.sh        # sys-nav central hub
+│   └── setup_cron.sh               # One-click cron automation
+│
+├── 📁 python/
+│   ├── kiswarm_status.py           # Real-time Rich monitoring dashboard
+│   ├── tool_proxy.py               # Tool injection proxy (Flask, :11435)
+│   └── sentinel/
+│       ├── __init__.py
+│       │
+│       │  ── v2.1 SENTINEL BRIDGE ──
+│       ├── sentinel_bridge.py      # AKE engine: 4 scouts + injector
+│       ├── swarm_debate.py         # Multi-model conflict resolution
+│       │
+│       │  ── v2.2 INTELLIGENCE MODULES ──
+│       ├── semantic_conflict.py    # Cosine similarity contradiction clustering
+│       ├── knowledge_decay.py      # Half-life decay engine (6 categories)
+│       ├── model_tracker.py        # ELO + reliability tracker
+│       ├── crypto_ledger.py        # SHA-256 Merkle ledger
+│       ├── retrieval_guard.py      # 4-layer retrieval trust assessment
+│       ├── prompt_firewall.py      # Adversarial content firewall
+│       │
+│       │  ── v3.0 INDUSTRIAL AI ──
+│       ├── fuzzy_tuner.py          # Gaussian/Bell fuzzy + Lyapunov gate
+│       ├── constrained_rl.py       # CMDP: masking + Lagrangian + Shielded
+│       ├── digital_twin.py         # Monte Carlo mutation + EVT tail test
+│       ├── federated_mesh.py       # Multi-Krum Byzantine mesh
+│       │
+│       │  ── v4.0 CIEC CORE ──
+│       ├── plc_parser.py           # IEC 61131-3 ST → CIR + DSG (493L)
+│       ├── scada_observer.py       # OPC/SQL observer + 12-feature extraction (587L)
+│       ├── physics_twin.py         # Thermal+Pump+Battery+Power physics (693L)
+│       ├── rule_engine.py          # Absolute constraint safety layer (485L)
+│       ├── knowledge_graph.py      # Cross-project KG + federated sync (587L)
+│       ├── actor_critic.py         # Constrained Actor-Critic RL (693L)
+│       │
+│       └── sentinel_api.py         # Flask REST API — ALL 59 endpoints
+│
+├── 📁 tests/
+│   ├── conftest.py
+│   ├── test_tool_proxy.py          # 50 tests
+│   ├── test_kiswarm_status.py      # 19 tests
+│   ├── test_sentinel.py            # 37 tests — v2.1 AKE
+│   ├── test_advanced_modules.py    # 99 tests — v2.2 (Modules 1-6)
+│   ├── test_v3_modules.py          # 105 tests — v3.0 (Modules 7-10)
+│   └── test_ciec_modules.py        # 120 tests — v4.0 (Modules 11-16) 🆕
+│
+├── 📁 config/
+│   ├── governance_config.json
+│   └── kiswarm.service
+│
+├── .github/workflows/ci.yml
+├── requirements.txt
+├── requirements-dev.txt
+└── README.md
+```
+
+---
+
+## 🧪 Test Coverage — 948 Tests, All Passing
+
+```
+tests/test_v43_security.py       85 tests  ← v4.3 ICS Cybersecurity (Modules 29-30) 🆕
+tests/test_v42_modules.py       157 tests  ← v4.2 XAI/PdM/SIL/Thread (Modules 24-28)
+tests/test_v41_modules.py       142 tests  ← v4.1 TD3/AST/VMware/Formal (Modules 17-23)
+tests/test_ciec_modules.py      120 tests  ← v4.0 CIEC (Modules 11-16)
+tests/test_v3_modules.py        105 tests  ← v3.0 (Modules 7-10)
+tests/test_advanced_modules.py   99 tests  ← v2.2 (Modules 1-6)
+tests/test_sentinel.py           37 tests  ← v2.1 AKE engine
+tests/test_tool_proxy.py         50 tests
+tests/test_kiswarm_status.py     19 tests
+──────────────────────────────────────────
+TOTAL                            948 tests  ✅ ALL PASSING
+```
+
+```bash
+# Run full suite
+pip install -r requirements-dev.txt
+pytest tests/ --ignore=tests/test_deploy.py -v
+
+# Run only CIEC tests
+pytest tests/test_ciec_modules.py -v
+
+# Run integration tests
+pytest tests/test_ciec_modules.py::TestCIECPipeline -v
+```
+
+---
+
+## 🔒 Security & Privacy
+
+| Property | Status |
+|---|---|
+| Data leaves the machine | ❌ Never — 100% local |
+| Cloud APIs after setup | ❌ None required |
+| AI directly binds RS-485 | ❌ Never — OPC UA intermediate API only |
+| Runs as root | ❌ Never — regular user only |
+| PLC parameters mutated directly | ❌ Always via OPC UA bounded write |
+| Raw actuator commands from AI | ❌ Parameter shifts only (±5% max) |
+| Audit logging | ✅ All operations recorded |
+| Cryptographic knowledge signing | ✅ SHA-256 + Merkle tree |
+| Adversarial content firewall | ✅ 3-layer pattern + statistical |
+| Constraint engine override | ✅ Hard constraints cannot be bypassed |
+
+---
+
+## ⚙️ System Requirements
+
+| Component | Minimum | Recommended |
+|---|---|---|
+| OS | Ubuntu 20.04+ / Debian 12+ | Ubuntu 22.04 LTS |
+| RAM | 8 GB | 16 GB+ |
+| Disk | 20 GB free | 50 GB+ SSD |
+| Python | 3.8+ | 3.11+ |
+| GPU | Optional | NVIDIA CUDA (2× speed) |
+| Network (after setup) | Not required | Air-gapped OK |
+
+---
+
+## 🔧 Version History
+
+### v4.0 — 2026-02-27 *(Current)*
+- ✅ **Module 11: PLC Semantic Parser** — IEC 61131-3 tokenizer, CIR/DSG builder, PID/interlock/watchdog detection
+- ✅ **Module 12: SCADA/OPC/SQL Observer** — 12-feature time-series extraction, PlantStateVector builder
+- ✅ **Module 13: Digital Twin Physics Engine** — Thermal/Pump/Battery/Power physics, fault injection, mutation evaluation
+- ✅ **Module 14: Rule Constraint Engine** — Hard+soft constraints, Lagrangian shielding, < 100μs validation
+- ✅ **Module 15: Cross-Project Knowledge Graph** — PID configs, failure signatures, cosine+Jaccard similarity, federated sync
+- ✅ **Module 16: Industrial Actor-Critic RL** — Constrained bounded parameter shifts, Lagrangian multipliers, action shielding
+- ✅ **59 REST API endpoints** — 28 new CIEC endpoints
+- ✅ **430 tests passing** — 120 new CIEC tests
+
+### v3.0 — 2026-02-26
+- ✅ Module 7: Fuzzy Membership Auto-Tuner (Lyapunov stability gate)
+- ✅ Module 8: Constrained RL Engine (CMDP, Lagrangian, Shielded RL)
+- ✅ Module 9: Digital Twin Mutation Pipeline (Monte Carlo, EVT tail test)
+- ✅ Module 10: Federated Adaptive Mesh (Multi-Krum Byzantine tolerance)
+- ✅ 29 REST endpoints | 310 tests
+
+### v2.2-EMS — 2026-02-25
+- ✅ Modules 1–6: Semantic Conflict · Decay · Tracker · Ledger · Guard · Firewall
+- ✅ 17 REST endpoints | 205 tests
+
+### v2.1-EMS — 2026-02-25
+- ✅ Sentinel Bridge: AKE + 4 Scouts + Swarm Debate
+- ✅ 5 REST endpoints | 148 tests
+
+### v1.1 — 2026-02-22
+- ✅ Portable $HOME paths, trap handlers, Qdrant VectorParams, backup rotation
+- ✅ 111 tests
+
+### v1.0 — 2026-02-22
+- ✅ Initial production release, 10-phase deployment
+
+---
+
+## 📄 License
+
+MIT License — Free to use, modify, and distribute globally.
+
+---
+
+## 🌟 Credits
+
+**Architect:** Baron Marco Paolo Ialongo  
+**Version:** 4.3 (CIEC + Industrial Cybersecurity)  
+**Repository:** https://github.com/Baronki2/KISWARM  
+**Tests:** 864 passing | **Endpoints:** 148 | **Modules:** 30
+
+*"The Swarm sees all. The Swarm knows all. The Swarm evolves eternally."* 🌌
+
+---
+---
+
+
+---
+
+---
+
+# 🆕 KISWARM v4.1 — TD3 · AST · Extended Physics · VMware · Formal · Byzantine · Governance
+
+> **7 new modules | 99 endpoints | 572 tests**
 
 ## Layered Architecture (L0–L7)
 
@@ -33,8 +793,6 @@ L1  Virtualization Orchestrator    Module 20 — VMware snapshot/clone/rollback
 L0  Physical PLC / Field Layer     NEVER modified autonomously — hard-key locked
 ```
 
----
-
 ## v4.1 New Modules (7)
 
 | # | Module | Description |
@@ -46,8 +804,6 @@ L0  Physical PLC / Field Layer     NEVER modified autonomously — hard-key lock
 | 21 | Formal Verification | Lyapunov stability (Stein eq.) + sampling barrier certificates |
 | 22 | Byzantine Aggregator | Trimmed-mean/Krum/Median/FLTrust — N≥3f+1 condition enforced |
 | 23 | Mutation Governance | 11-step pipeline, no step skippable, human gate at Step 8 |
-
----
 
 ## Mutation Governance Pipeline (11 Steps — No Shortcuts)
 
@@ -66,12 +822,10 @@ Step 10  Full system acceptance test (20 test cases)
 Step 11  Production key release (PRODKEY_<SHA256[:16]>)
 ```
 
-**Rejection is automatic at Steps 3–6 if conditions not met.**  
+**Rejection is automatic at Steps 3–6 if conditions not met.**
 **No human can skip the formal verification or twin simulation.**
 
----
-
-## TD3 Controller Hyperparameters
+## TD3 Hyperparameters
 
 | Parameter | Value | Rationale |
 |-----------|-------|-----------|
@@ -85,28 +839,22 @@ Step 11  Production key release (PRODKEY_<SHA256[:16]>)
 | Replay buffer | 2,000,000 | Rare event memory |
 | Policy delay | 2 | TD3 double-Q trick |
 
-**Reward:** R = 0.40·stability + 0.30·efficiency − 0.15·cycles − 0.10·violation − 0.05·oscillation
-
----
+**Reward:** `R = 0.40·stability + 0.30·efficiency − 0.15·cycles − 0.10·violation − 0.05·oscillation`
 
 ## Formal Verification
 
 **Lyapunov (Method A — Linearized):**
 ```
-Solve:  AᵀPA − P = −Q   (discrete-time Stein equation)
-Approve if:  ρ(A) < 1  AND  P is positive definite
+Solve:   AᵀPA − P = −Q   (discrete-time Stein equation)
+Approve: ρ(A) < 1  AND  P is positive definite
 ```
 
 **Barrier Certificate (Method B — Nonlinear):**
 ```
 Sample 500 points in safe set S
 Check:  B(x) ≥ 0  AND  dB/dt ≤ 0  at every point
-Approve only if:  zero violations
+Approve only if: zero violations
 ```
-
-Every decision stored in cryptographic ledger with SHA-256 chain.
-
----
 
 ## Byzantine Federated Aggregation
 
@@ -117,8 +865,6 @@ Update:     θ ← θ − η · robust_mean(gᵢ)
 Privacy:    No raw plant data leaves any site — gradients only
 ```
 
----
-
 ## VMware Safety Rules (Hard-Coded)
 
 1. **VM-A, VM-B** (production) → AI may only READ, never mutate
@@ -127,150 +873,41 @@ Privacy:    No raw plant data leaves any site — gradients only
 4. Promotion requires `Maquister_Equtitum` authorization code
 5. No direct ESXi root access from AI layer
 
----
-
-## REST API (99 Endpoints)
-
-```
-v2.1 Sentinel Intelligence   17 endpoints  /sentinel /firewall /decay /ledger /conflict /tracker /guard
-v3.0 Industrial AI           13 endpoints  /fuzzy /rl /twin /mesh
-v4.0 CIEC Core               28 endpoints  /plc /scada /ciec-twin /constraints /kg /ciec-rl
-v4.1 Advanced CIEC           41 endpoints  /td3 /ast /physics /vmware /formal /federated /governance
-```
-
-**Start API:**
-```bash
-python -m python.sentinel.sentinel_api
-# → http://127.0.0.1:11436
-```
-
-**Quick examples:**
-```bash
-# TD3 action
-curl -X POST http://localhost:11436/td3/act \
-  -d '{"state":[0.5,0.3], "deterministic":true}'
-
-# Parse IEC 61131-3 ST
-curl -X POST http://localhost:11436/ast/parse \
-  -d '{"source":"PROGRAM P\nVAR x:REAL; END_VAR\nx:=1.0;\nEND_PROGRAM"}'
-
-# Lyapunov stability check
-curl -X POST http://localhost:11436/formal/lyapunov \
-  -d '{"A":[[0.5,0.1],[0.0,0.6]],"mutation_id":"MUT_001"}'
-
-# Start mutation governance pipeline
-curl -X POST http://localhost:11436/governance/begin \
-  -d '{"plc_program":"PumpCtrl","param_deltas":{"delta_kp":0.02}}'
-```
 
 ---
 
-## Test Coverage
-
-```bash
-python -m pytest tests/ --ignore=tests/test_deploy.py -q
-# 572 passed
-```
-
-| Suite | Tests | Modules |
-|-------|-------|---------|
-| test_sentinel.py | 80 | v2.1 (6) |
-| test_industrial.py | 90 | v3.0 (4) |
-| test_ciec.py | 170 | v4.0 (6) |
-| test_v41_modules.py | **142** | **v4.1 (7)** |
-| test_api.py | 90 | REST API |
-
 ---
 
-## Project Structure
+# 🆕 KISWARM v4.2 — XAI · Predictive Maintenance · Multi-Agent · SIL · Digital Thread
 
-```
-KISWARM/
-├── python/sentinel/
-│   ├── sentinel_api.py           99 REST endpoints
-│   ├── td3_controller.py         NEW v4.1
-│   ├── ast_parser.py             NEW v4.1
-│   ├── extended_physics.py       NEW v4.1
-│   ├── vmware_orchestrator.py    NEW v4.1
-│   ├── formal_verification.py    NEW v4.1
-│   ├── byzantine_aggregator.py   NEW v4.1
-│   ├── mutation_governance.py    NEW v4.1
-│   └── [16 v2.1-v4.0 modules]
-├── tests/
-│   ├── test_v41_modules.py       142 tests NEW
-│   └── [v2.1–v4.0 test suites]
-└── README.md
-```
-
----
-
-## License
-
-MIT License — © Baron Marco Paolo Ialongo
-
-*KISWARM v4.1 · 23 Modules · 99 Endpoints · 572 Tests · Production Ready*
-
----
-
-# 🧠 KISWARM v4.2 — Explainability · Predictive Maintenance · Multi-Agent · SIL · Digital Thread
-
-> **v4.2 adds full AI explainability (XAI/SHAP), predictive maintenance with RUL, multi-agent plant coordination, IEC 61508 SIL verification, and end-to-end digital thread traceability.**
-
-[![Tests](https://img.shields.io/badge/tests-729%20passing-brightgreen)]()
-[![Modules](https://img.shields.io/badge/modules-28-blue)]()
-[![Endpoints](https://img.shields.io/badge/endpoints-133-blue)]()
-[![Version](https://img.shields.io/badge/version-4.2-orange)]()
-
----
+> **5 new modules | 133 endpoints | 729 tests**
 
 ## v4.2 New Modules (5)
 
 | # | Module | File | Description |
 |---|--------|------|-------------|
-| 24 | Explainability Engine (XAI) | `explainability_engine.py` | KernelSHAP attribution for every AI decision |
-| 25 | Predictive Maintenance | `predictive_maintenance.py` | RUL prediction + degradation curves + fleet management |
+| 24 | Explainability Engine | `explainability_engine.py` | KernelSHAP attribution for every AI decision |
+| 25 | Predictive Maintenance | `predictive_maintenance.py` | LSTM RUL prediction + degradation curves + fleet management |
 | 26 | Multi-Agent Coordinator | `multiagent_coordinator.py` | N×TD3 agents with 3-phase consensus + conflict resolution |
-| 27 | SIL Verification Engine | `sil_verification.py` | IEC 61508 PFD/SIL assessment + mutation impact |
-| 28 | Digital Thread Tracker | `digital_thread.py` | End-to-end traceability DAG + compliance checks |
-
----
+| 27 | SIL Verification Engine | `sil_verification.py` | IEC 61508 PFD/SIL/HFT/SFF + mutation impact |
+| 28 | Digital Thread Tracker | `digital_thread.py` | End-to-end traceability DAG + IEC 62443 compliance |
 
 ## Module 24 — Explainability Engine (XAI)
-
-Every AI decision in KISWARM is now explainable and auditable.
 
 **KernelSHAP** (pure Python, no external ML libs):
 - Samples 2ⁿ coalitions (or n_samples for large n)
 - SHAP kernel weighting: `w = (n-1) / (C(n,s) · s · (n-s))`
-- Weighted least-squares via Gauss elimination with regularisation
+- Weighted least-squares via Gauss elimination + regularisation
 - Counterfactual "what-if": ±10% per top-3 feature
+- Immutable SHA-256 chained `ExplanationLedger`
 
-**Explanation types:**
-
-| Type | Source | Features |
-|------|--------|----------|
-| `td3_action` | TD3 actor Q-output | State vector dimensions |
-| `formal_verify` | Lyapunov result | spectral_radius, lyapunov_margin, P_pos_def, converged |
-| `governance` | Evidence chain | Step pass/fail weighted by recency |
-| `physics` | Twin episode | Plant state variables |
-| `generic` | Any callable | Any feature list |
-
-**Immutable Explanation Ledger** — SHA-256 chain, `verify_integrity()` detects tampering.
-
-```bash
-# Explain a TD3 action
-curl -X POST http://localhost:11436/xai/explain-td3 \
-  -d '{"state":[0.5,0.3,0.8,0.1,0.6,0.2,0.9,0.4]}'
-# → {"top_features":["state_7","state_6","state_4"], "natural_language":"..."}
-```
-
----
+Explains: TD3 actions · Lyapunov verdicts · Governance pipeline steps · Physics twin outputs
 
 ## Module 25 — Predictive Maintenance Engine (PdM)
 
-**Asset Classes:** pump · motor · valve · bearing · electrical · compressor · heat_exchanger
+**Asset classes:** pump · motor · valve · bearing · electrical · compressor · heat_exchanger
 
-**Degradation Models:**
+**Degradation models:**
 
 | Model | Formula | Best for |
 |-------|---------|----------|
@@ -278,63 +915,24 @@ curl -X POST http://localhost:11436/xai/explain-td3 \
 | Exponential | HI = exp(−αt) | Motors, electrical |
 | Sigmoid | HI = 1/(1+exp(k·(t−0.7))) | Pumps — holds then drops |
 
-**LSTM Recurrent Health Model** — 16-unit LSTM cell (pure Python), tracking temporal sensor evolution across readings.
+**Alarm levels:** healthy (0.6–1.0) · warning (0.3–0.6) · critical (0.1–0.3) · failed (0.0–0.1)
 
-**Alarm Levels:**
-
-| Level | HI Range | Action |
-|-------|----------|--------|
-| healthy | 0.6–1.0 | Normal operation |
-| warning | 0.3–0.6 | Plan maintenance |
-| critical | 0.1–0.3 | Schedule within days |
-| failed | 0.0–0.1 | **IMMEDIATE SHUTDOWN** |
-
-**RUL Monte Carlo** — 100 samples with σ = max(0.02, (1-HI)·0.1) → 10th/90th percentile CI.
-
-**Maintenance Scheduling** — minimises `risk_cost - planned_cost` across fleet, sorted by urgency.
-
-```bash
-curl -X POST http://localhost:11436/pdm/ingest \
-  -d '{"asset_id":"pump_1","hour":500,"temperature":75,"vibration":3.5,"current_draw":55,"pressure_drop":1.5,"efficiency":0.78}'
-# → {"health_index": 0.71, "alarm_level": "healthy", "anomaly_score": 0.4}
-```
-
----
+**RUL Monte Carlo** — 100 samples, σ = max(0.02, (1-HI)·0.1) → 10th/90th percentile CI
 
 ## Module 26 — Multi-Agent Plant Coordinator
 
-**Architecture:** N independent `SectionAgent` (lightweight 2-hidden-layer actor) + `ConsensusProtocol`.
-
-**Default plant sections:**
-
-| Section | Priority | Power (kW) | Cooling (m³/h) |
-|---------|----------|------------|----------------|
-| pump_station | 1 | 75 | 5 |
-| reactor | 2 | 120 | 20 |
-| separator | 3 | 30 | 8 |
-| compressor | 2 | 200 | 15 |
-| heat_exchanger | 4 | 10 | 25 |
+N independent `SectionAgent` actors with 3-phase consensus protocol:
+1. Each agent proposes action + resource demand independently
+2. `CoordinatorBus` pub/sub broadcast
+3. `ConflictResolver` — priority×Q-value arbitration, proportional scaling
 
 **Shared resource limits:** 500 kW total power · 80 m³/h cooling · 8 bar compressed air
 
-**3-Phase Consensus Protocol:**
-1. Each agent proposes action + resource demand independently
-2. Proposals broadcast on `CoordinatorBus` (in-process pub/sub)
-3. `ConflictResolver` processes by priority×Q-value; over-budget proposals scaled down
-4. Committed: full action; Arbitrated: scaled action + Q-penalty
-5. `RewardShaper` applies: `R_shaped = R_local − 0.5·conflict_penalty + 0.2·coord_bonus`
-
-```bash
-curl -X POST http://localhost:11436/coordinator/step \
-  -d '{"states":{"pump_station":[0.5,0.3,0.8,0.1,0.6,0.2,0.9,0.4]}}'
-# → {"consensus":{"n_conflicts":0, "coordination_bonus":1.0, ...}}
-```
-
----
+**Reward:** `R_shaped = R_local − 0.5·conflict_penalty + 0.2·coord_bonus`
 
 ## Module 27 — IEC 61508 SIL Verification Engine
 
-**SIL Levels (PFD on Demand):**
+**Architectures:** 1oo1 · 1oo2 · 2oo2 · 2oo3 · 1oo3 · 2oo4
 
 | SIL | PFD Range | Risk Reduction |
 |-----|-----------|----------------|
@@ -343,117 +941,1075 @@ curl -X POST http://localhost:11436/coordinator/step \
 | 3 | 10⁻⁴ – 10⁻³ | 1,000–10,000× |
 | 4 | 10⁻⁵ – 10⁻⁴ | 10,000–100,000× |
 
-**PFD Formulas (IEC 61508 Annex B):**
-
-| Architecture | Formula |
-|-------------|---------|
-| 1oo1 | λ_d · T_i / 2 |
-| 1oo2 | (1−β)² · λ_d² · T_i² / 3 + β · λ_d · T_i / 2 |
-| 2oo3 | 3(1−β)² · λ_d² · T_i² / 3 + β · λ_d · T_i / 2 |
-| 1oo3 | (1−β)³ · λ_d³ · T_i³ / 4 + β · λ_d · T_i / 2 |
-
-**HFT Requirements** (IEC 61508-2 Table): minimum Hardware Fault Tolerance per SIL × SFF range.
-
-**Mutation Impact Analysis:** Conservative model — total param delta × 0.5 sensitivity factor on λ_d. Auto-rejects if SIL degrades.
-
-```bash
-curl -X POST http://localhost:11436/sil/assess \
-  -d '{"sif_id":"SIF_PUMP","sil_required":2,"subsystems":[
-    {"subsystem_id":"sensor","architecture":"1oo2","lambda_d":1e-6,"lambda_s":2e-6,
-     "mttf_hours":100000,"mttr_hours":8,"proof_test_interval_hours":8760,"dc":0.90,"hw_fault_tolerance":1}
-  ]}'
-# → {"sil_achieved":2, "compliant":true, "pfd_total":"3.40e-04"}
-```
-
----
+Mutation impact: `λ_d_new = λ_d × (1 + Σ|deltas| × 0.5)` — auto-reject if SIL degrades.
 
 ## Module 28 — Digital Thread Tracker
 
-**The Digital Thread** links every artefact from first design to deployed PLC — enabling root-cause analysis, regulatory audit, and AI decision provenance.
+**14 node types · 9 edge types · BFS lineage queries**
 
-**Node Types (14):**
-`design_spec · simulation · formal_cert · governance · mutation · plc_build · test_result · deployment · alert · sil_assessment · xai_explanation · physics_episode · ast_parse`
+Compliance standards built-in: IEC 61508 · IEC 62443 · NAMUR NE 175
 
-**Edge Types (9):**
-`derived_from · verified_by · tested_by · deployed_as · approved_by · caused · supersedes · implements · references`
 
-**Compliance Standards:**
+---
 
-| Standard | Required Node Types | Required Edge Types |
-|----------|--------------------|--------------------|
-| IEC 61508 | design_spec · simulation · sil_assessment · formal_cert · test_result · deployment | verified_by · tested_by · deployed_as |
-| IEC 62443 | design_spec · governance · test_result · deployment | approved_by · tested_by · deployed_as |
-| NAMUR NE 175 | design_spec · simulation · formal_cert · xai_explanation · governance · deployment | verified_by · approved_by · derived_from |
+---
 
-**Lineage Queries:** `ancestors()`, `descendants()`, `impact_path()`, `mutation_lineage()` — all BFS on the DAG.
+# 🆕 KISWARM v4.3 — ICS Cybersecurity Engine (IEC 62443 + MITRE ATT&CK for ICS)
+
+> **2 new modules | 148 endpoints | 948 tests**  
+> *Fully autonomous, defensive-only. Observe, detect, and report — never control, never attack.*
+
+## Security Design Principle
+
+```
+AI NEVER sends write commands to PLCs or actuators.
+Security agents are read-only, passive, and defensive.
+All findings are signed and stored in tamper-proof ledger.
+No tool in KISWARM generates exploits or attacks systems.
+```
+
+## v4.3 New Modules (2)
+
+| # | Module | File | Description |
+|---|--------|------|-------------|
+| 29 | ICS Cybersecurity Engine | `ics_security.py` | IEC 62443 SL assessment + 5 defensive agents + MITRE ATT&CK mapping |
+| 30 | OT Network Monitor | `ot_network_monitor.py` | Passive OT protocol anomaly detection (Modbus/OPC-UA/PROFINET/DNP3) |
+
+---
+
+## Module 29 — ICS Cybersecurity Engine (`ics_security.py`)
+
+**5 Defensive Security Agents (all read-only):**
+
+| Agent | Function |
+|-------|----------|
+| **CVE Intelligence Agent** | Matches observed software/firmware versions to industrial CVE database (Modbus, OPC-UA, PROFINET, EtherNet/IP, HART, DNP3) |
+| **Network Anomaly Detector** | Statistical baseline on OT protocol traffic; z-score alerts on unusual command frequencies |
+| **PLC Code Security Scanner** | Static analysis of Structured Text for 12 unsafe patterns: unvalidated inputs, unsafe type casts, missing watchdog, buffer overflows |
+| **SCADA Config Assessor** | Checks encryption status, auth strength, patch level, default credentials, unnecessary services |
+| **Incident Correlation Engine** | MITRE ATT&CK for ICS mapping; correlates alerts across all agents into unified incidents |
+
+**IEC 62443 Security Levels:**
+
+| SL | Description | Controls Required |
+|----|-------------|------------------|
+| SL 0 | No security requirement | Not assessed |
+| SL 1 | Protection against casual/coincidental violation | Single-factor auth, basic logging |
+| SL 2 | Protection against intentional attack with simple means | Network segmentation, encrypted comms |
+| SL 3 | Protection against sophisticated/motivated attacker | MFA, anomaly detection, signed firmware |
+| SL 4 | Protection against state-sponsored attack | HSM, formal verification, air-gap |
+
+**MITRE ATT&CK for ICS — Tactic Detection Coverage:**
+
+| Tactic | Example Techniques Detected |
+|--------|----------------------------|
+| Initial Access | Spearphishing, Exploit Public-Facing Application |
+| Execution | Command-Line Interface, Native API abuse |
+| Persistence | Valid Accounts, External Remote Services |
+| Lateral Movement | Default Credentials, Remote Services |
+| Collection | Automated Collection, Data from Local System |
+| Inhibit Response | Alarm Suppression, Activate Firmware Update Mode |
+| Impair Process Control | Unauthorized Command Message, Block Reporting |
+| Impact | Loss of Availability, Safety System Manipulation |
+
+**SHA-256 chained Security Incident Ledger** — every finding tamper-proof.
 
 ```bash
-# Build a mutation thread
-curl -X POST http://localhost:11436/thread/node \
-  -d '{"node_type":"mutation","title":"Kp +2% on PumpCtrl","payload":{"delta_kp":0.02}}'
+# Scan PLC code for security vulnerabilities (static, read-only)
+curl -X POST http://localhost:11436/security/scan-plc \
+  -d '{"source":"PROGRAM PumpCtrl\n...\nEND_PROGRAM","program_name":"PumpCtrl"}'
+# → {"findings":[{"severity":"HIGH","pattern":"missing_watchdog","recommendation":"..."}]}
 
-curl -X POST http://localhost:11436/thread/compliance \
-  -d '{"standard":"namur_ne175"}'
-# → {"compliant":true/false, "missing_node_types":[...]}
+# Push network event metadata for anomaly analysis
+curl -X POST http://localhost:11436/security/network-event \
+  -d '{"protocol":"modbus","function_code":6,"src_ip":"192.168.1.50","rate_hz":12.0}'
+# → {"anomaly":true,"z_score":4.2,"tactic":"Impair Process Control"}
+
+# Get current IEC 62443 security posture
+curl http://localhost:11436/security/posture
+# → {"sl_achieved":2,"sl_target":3,"gap_findings":["MFA not configured","..."]}
+
+# Full IEC 62443 assessment for an asset
+curl -X POST http://localhost:11436/security/iec62443-assess \
+  -d '{"asset_id":"reactor_plc","target_sl":3}'
+
+# Check active incidents mapped to MITRE ATT&CK
+curl http://localhost:11436/security/incidents?limit=20
 ```
 
 ---
 
-## v4.2 REST API — 34 New Endpoints
+## Module 30 — OT Network Monitor (`ot_network_monitor.py`)
 
-```
-XAI (6):        /xai/explain-td3  /xai/explain-formal  /xai/explain-governance
-                /xai/explain  /xai/ledger  /xai/stats
+**Passive industrial protocol traffic analysis** — no packets injected.
 
-PdM (7):        /pdm/register  /pdm/ingest  /pdm/rul/<id>  /pdm/schedule
-                /pdm/maintenance  /pdm/fleet  /pdm/stats
+**Supported protocols:** Modbus TCP · OPC-UA · PROFINET · EtherNet/IP · DNP3 · HART-IP · IEC 61850 MMS
 
-Coordinator(7): /coordinator/sections  /coordinator/add-section  /coordinator/step
-                /coordinator/rewards  /coordinator/history  /coordinator/agents
-                /coordinator/stats
+**Baseline engine:**
+- Rolling 24h window per protocol×command pair
+- Exponential moving average (α=0.1) + 3σ anomaly threshold
+- Automatic re-baselining after registered maintenance windows
 
-SIL (5):        /sil/assess  /sil/mutation-impact  /sil/assessment/<id>
-                /sil/impact-log  /sil/stats
-
-Thread (10):    /thread/node  /thread/edge  /thread/node/<id>
-                /thread/ancestors/<id>  /thread/descendants/<id>
-                /thread/lineage/<id>  /thread/compliance
-                /thread/find  /thread/stats
-```
-
-**Total: 99 → 133 endpoints**
-
----
-
-## v4.2 Test Coverage
+**Alert conditions detected:**
+- Command frequency anomaly (unusual Modbus write rate)
+- New source IP communicating with PLC first time
+- Unusual function codes (Modbus FC 8/43 = diagnostic/encapsulate)
+- Large payload to field device (potential unauthorized firmware push)
+- Engineering station active outside permitted hours
 
 ```bash
-python -m pytest tests/ --ignore=tests/test_deploy.py -q
-# 729 passed
+# Register OT network segment for monitoring
+curl -X POST http://localhost:11436/ot-monitor/segment \
+  -d '{"segment_id":"reactor_field","subnet":"10.10.1.0/24","protocols":["modbus","opc_ua"]}'
+
+# Ingest packet metadata (NOT payload — privacy preserved)
+curl -X POST http://localhost:11436/ot-monitor/packet \
+  -d '{"segment_id":"reactor_field","protocol":"modbus","function_code":6,"src":"10.10.1.20","dst":"10.10.1.5","payload_bytes":8}'
+
+# Get active anomaly alerts
+curl http://localhost:11436/ot-monitor/alerts
+
+# View statistical baseline
+curl http://localhost:11436/ot-monitor/baseline/reactor_field
 ```
 
-| Suite | Tests | Modules |
-|-------|-------|---------|
-| test_v42_modules.py | **157** | **v4.2 (5 new)** |
-| test_v41_modules.py | 142 | v4.1 (7) |
-| test_ciec.py | 170 | v4.0 (6) |
-| test_industrial.py | 90 | v3.0 (4) |
-| test_sentinel.py | 80 | v2.1 (6) |
-| test_api.py | 90 | REST API |
+---
+
+## IEC 62443 Zone Model — Security Architecture
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  ZONE 4 — Enterprise Network (IT)                        │
+│  KISWARM AI · Qdrant · Ollama · REST API :11436         │
+│  ICS Security Engine reads alerts from all zones         │
+└─────────────────────┬────────────────────────────────────┘
+                      │ DMZ / Conduit (monitored by Module 30)
+┌─────────────────────▼────────────────────────────────────┐
+│  ZONE 3 — Operations Network (OT)                        │
+│  SCADA Servers · Historian · HMI                         │
+│  ← OT Network Monitor watches passively here            │
+└─────────────────────┬────────────────────────────────────┘
+                      │ Secure conduit (OPC UA / TLS)
+┌─────────────────────▼────────────────────────────────────┐
+│  ZONE 2 — Control Network (OT)                           │
+│  DCS · Safety PLC · Engineering Stations                 │
+│  ← PLC Code Scanner analyzes logic (read-only)          │
+└─────────────────────┬────────────────────────────────────┘
+                      │ Fieldbus (Modbus/PROFINET)
+┌─────────────────────▼────────────────────────────────────┐
+│  ZONE 1 — Field Level (OT)                               │
+│  PLCs · RTUs · Smart Instruments · Actuators             │
+│  ⛔ AI NEVER WRITES TO THIS ZONE                        │
+└──────────────────────────────────────────────────────────┘
+```
+
+## About HexStrike Integration
+
+The KISWARM v4.3 security layer incorporates the **defensive concepts** from HexStrike AI MCP (CVE Intelligence, Network Scout, Vulnerability Correlator, Rate Limit Detector, Failure Recovery) fully integrated with the CIEC framework:
+
+- **CVE Intelligence** feeds the ICS CVE database → CIEC Knowledge Graph
+- **Network Scout** drives the OT Network Monitor passive baseline
+- **Vulnerability Correlator** powers the Incident Correlation Engine
+- **Rate Limit Detector** is the anomaly z-score engine in Module 30
+- **Failure Recovery** drives automated response playbooks (alert + suggest, never act)
+
+All agents access PLC parser data, SCADA observations, physics twin, and constraint engine — making every security finding context-aware and validated against plant physics before alerting.
+
+> **Note:** Exploit generation and active attack tooling are NOT implemented. For industrial infrastructure, all security actions are observe-only. Generating real exploits targeting operating PLCs/SCADA violates IEC 62443 and creates physical safety risk.
+
 
 ---
 
-## Complete Version History
+# PRESERVED: Previous Version Documentation
 
-| Version | Modules | Endpoints | Tests | Key Additions |
-|---------|---------|-----------|-------|---------------|
-| v2.1 | 11 | 29 | 180 | Firewall, Decay, Ledger, Conflict |
-| v3.0 | 15 | 42 | 280 | Fuzzy PID, Constrained RL, Digital Twin |
-| v4.0 | 16 | 59 | 430 | PLC Parser, SCADA, CIEC Twin, Knowledge Graph |
-| v4.1 | 23 | 99 | 572 | TD3, AST, Physics, VMware, Formal, Byzantine, Governance |
-| **v4.2** | **28** | **133** | **729** | **XAI, PdM, MultiAgent, SIL, DigitalThread** |
+> The sections below preserve the complete documentation from v1.1 through v3.0.
+> All original descriptions, algorithms, and API references remain intact.
 
 ---
 
-*KISWARM v4.2 · 28 Modules · 133 Endpoints · 729 Tests · Production Ready*
-*© Baron Marco Paolo Ialongo*
+ — Autonomous AI Swarm Governance Platform
+
+> **ETERNAL SWARM EVOLUTION SYSTEM** — Enterprise Military Standard Edition  
+> *Production-Hardened · Self-Healing · Sentinel-Class Intelligence · 310 Tests Passing*  
+> **Architect:** Baron Marco Paolo Ialongo
+
+[![Version](https://img.shields.io/badge/version-3.0--EMS-blue.svg)](https://github.com/Baronki2/KISWARM)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![CI](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml/badge.svg)](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-310%20passing-success.svg)](tests/)
+[![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg)](README.md)
+[![Ollama](https://img.shields.io/badge/powered%20by-Ollama-orange.svg)](https://ollama.com)
+
+---
+
+## 🎯 What is KISWARM?
+
+KISWARM is a complete, self-managing AI governance platform that orchestrates 27+ local LLM models via Ollama with **persistent vector memory**, **autonomous knowledge extraction**, **real-time monitoring**, and **self-healing capabilities** — running 100% locally, zero cloud dependency.
+
+Version **2.1-EMS** introduces the **Sentinel Bridge**: an Autonomous Knowledge Extraction (AKE) engine that detects knowledge gaps in the swarm, deploys multi-source research scouts in parallel, cross-verifies intelligence via a **Swarm Debate** between local models, and injects distilled knowledge directly into the Qdrant vector database — without any human intervention.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│            KISWARM v2.1-EMS PRODUCTION SYSTEM                   │
+│            ETERNAL SWARM EVOLUTION SYSTEM                       │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+         ┌────────────────────┼────────────────────┐
+         ▼                    ▼                    ▼
+     ┌────────┐         ┌──────────┐         ┌──────────┐
+     │ Ollama │         │  Qdrant  │         │  Tool    │
+     │ :11434 │         │  Memory  │         │  Proxy   │
+     │ 27+    │         │    DB    │         │  :11435  │
+     │ Models │         │  Vector  │         │  Flask   │
+     └────────┘         └──────────┘         └──────────┘
+         │                    │                    │
+         └────────────────────┼────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+     ┌─────────────────┐           ┌──────────────────┐
+     │ SENTINEL BRIDGE │           │  Swarm Debate    │
+     │    Port 11436   │           │    Engine        │
+     │                 │           │                  │
+     │ • WikipediaScout│           │ • Multi-model    │
+     │ • ArxivScout    │           │   voting         │
+     │ • DuckDuckGo    │           │ • Conflict res.  │
+     │ • OllamaScout   │           │ • Synthesis gen  │
+     │ • CKM Gap Det.  │           │                  │
+     └─────────────────┘           └──────────────────┘
+              │                               │
+              └───────────────┬───────────────┘
+                              ▼
+              ┌───────────────────────────────┐
+              │      Monitoring & Ops         │
+              │                               │
+              │  • kiswarm-status (Rich UI)   │
+              │  • kiswarm-health (40+ checks)│
+              │  • Systemd auto-restart       │
+              │  • Daily backup rotation      │
+              │  • 30-min health cron         │
+              │  • Full audit logging         │
+              └───────────────────────────────┘
+```
+
+---
+
+## 🚀 Quick Start — 3 Commands
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Baronki2/KISWARM.git && cd KISWARM
+
+# 2. Run the 10-phase automated deployment (15-20 minutes)
+chmod +x deploy/kiswarm_deploy.sh && ./deploy/kiswarm_deploy.sh
+
+# 3. Activate and verify
+source ~/.bashrc && kiswarm-health && sys-nav
+```
+
+**System is fully operational when you see:** `Overall Health: 90%+` ✅
+
+---
+
+## ✨ Feature Matrix — v1.1 vs v2.1-EMS
+
+| Feature | v1.1 | v2.1-EMS | v2.2-EMS | v3.0 |
+|---|:---:|:---:|:---:|:---:|
+| 🧠 Persistent Vector Memory (Qdrant) | ✅ | ✅ + Sentinel KB | ✅ | ✅ |
+| 🔧 Auto Tool Injection (Port 11435) | ✅ | ✅ | ✅ | ✅ |
+| 📊 Real-Time Monitoring Dashboard | ✅ | ✅ | ✅ | ✅ |
+| 🛡️ Self-Healing (Systemd + Trap) | ✅ | ✅ | ✅ | ✅ |
+| 🧹 Automated Maintenance (30-day) | ✅ | ✅ | ✅ | ✅ |
+| 🎛️ Governance Mode + Audit Logging | ✅ | ✅ | ✅ | ✅ |
+| 🤖 27+ Ollama Models | ✅ | ✅ | ✅ | ✅ |
+| 🧪 Test Coverage | 111 | 148 | 205 | **310** |
+| 🛰️ Sentinel Bridge (AKE) | ❌ | ✅ | ✅ | ✅ |
+| 🔬 Multi-Source Scouts (4 types) | ❌ | ✅ | ✅ | ✅ |
+| ⚔️ Swarm Debate Engine | ❌ | ✅ | ✅ | ✅ |
+| 🌐 Sentinel REST API | ❌ | ✅ (13) | ✅ (17) | ✅ **(29)** |
+| 🧲 Semantic Conflict Detection | ❌ | ❌ | ✅ | ✅ |
+| ⏳ Knowledge Decay Engine | ❌ | ❌ | ✅ | ✅ |
+| 🏆 Model Performance Tracker (ELO) | ❌ | ❌ | ✅ | ✅ |
+| 🔐 Cryptographic Knowledge Ledger | ❌ | ❌ | ✅ | ✅ |
+| 🔍 Differential Retrieval Guard | ❌ | ❌ | ✅ | ✅ |
+| 🚫 Adversarial Prompt Firewall | ❌ | ❌ | ✅ | ✅ |
+| 🎛️ **Fuzzy Membership Auto-Tuner** | ❌ | ❌ | ❌ | ✅ **NEW** |
+| 🤖 **Constrained RL Engine (CMDP)** | ❌ | ❌ | ❌ | ✅ **NEW** |
+| 🔬 **Digital Twin Mutation Pipeline** | ❌ | ❌ | ❌ | ✅ **NEW** |
+| 🌐 **Federated Adaptive Mesh (Byzantine)** | ❌ | ❌ | ❌ | ✅ **NEW** |
+
+---
+
+## 🛡️ SENTINEL BRIDGE — Autonomous Knowledge Extraction (AKE)
+
+### The Deep-Extraction Loop
+
+The Sentinel Bridge operates on a 5-phase autonomous pipeline:
+
+```
+Phase 1: GAP DETECTION
+  Central Knowledge Manager (CKM) queries local Ollama model:
+  "Rate your confidence for this query: 0.0–1.0"
+  
+  Confidence ≥ 85%  → Swarm answers directly (no extraction needed)
+  Confidence  < 85%  → KNOWLEDGE GAP DETECTED → Deploy scouts
+
+Phase 2: PARALLEL SCOUT DEPLOYMENT
+  4 scouts launch simultaneously (aiohttp async):
+  ┌─────────────────────────────────────────────────────┐
+  │  WikipediaScout  → Wikipedia REST API  (conf: 0.75) │
+  │  ArxivScout      → ArXiv Paper API    (conf: 0.85)  │
+  │  DuckDuckGoScout → DDG Instant API    (conf: 0.65)  │
+  │  OllamaScout     → Local LLM synth.  (conf: 0.70)  │
+  └─────────────────────────────────────────────────────┘
+
+Phase 3: LOGIC SYNTHESIS
+  LogicSynthesizer processes all returns:
+  • Deduplication by MD5 content hash
+  • Rank by confidence score descending
+  • Strip HTML/noise, clean whitespace
+  • Detect content disparity conflicts
+  • Compute aggregate confidence (multi-source bonus)
+
+Phase 4: SWARM DEBATE (if conflicts detected)
+  All local Ollama models receive both conflicting payloads.
+  Each model votes: A  |  B  |  SYNTHESIS + 1-sentence argument
+  Tally determines winner. SYNTHESIS → model generates merged truth.
+
+Phase 5: MEMORY INJECTION
+  SwarmMemoryInjector vectorizes (384-dim, all-MiniLM-L6-v2)
+  and upserts verified SwarmKnowledge into Qdrant collection
+  'sentinel_knowledge' with full metadata and audit trail.
+```
+
+### Intelligence Packet Structure
+
+```python
+@dataclass
+class SwarmKnowledge:
+    query:          str          # Original query that triggered extraction
+    content:        str          # Distilled, verified intelligence payload
+    sources:        list         # [{source, url, confidence}, ...]
+    confidence:     float        # Aggregate confidence (0.0–1.0)
+    classification: str          # "SENTINEL-VERIFIED-EMS"
+    timestamp:      str          # ISO 8601
+    hash_id:        str          # SHA-256 dedup fingerprint (16 chars)
+```
+
+### Sentinel REST API (Port 11436)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/sentinel/extract` | Trigger AKE for a query |
+| `POST` | `/sentinel/debate` | Resolve conflicting intelligence via Swarm Debate |
+| `GET` | `/sentinel/search?q=<query>` | Search existing swarm knowledge memory |
+| `GET` | `/sentinel/status` | Engine health + extraction statistics |
+| `GET` | `/health` | Service ping |
+
+**Extract knowledge — example:**
+```bash
+curl -X POST http://localhost:11436/sentinel/extract \
+  -H "Content-Type: application/json" \
+  -d '{"query": "quantum key distribution protocols", "threshold": 0.85}'
+
+# Response:
+{
+  "status":     "success",
+  "hash_id":    "a3f2b91c4e7d8012",
+  "confidence": 0.87,
+  "sources":    3,
+  "injected":   true,
+  "chars":      2847,
+  "timestamp":  "2026-02-25T14:32:11"
+}
+```
+
+**Trigger Swarm Debate — example:**
+```bash
+curl -X POST http://localhost:11436/sentinel/debate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query":     "Is approach X better than approach Y?",
+    "content_a": "Wikipedia says X is superior because...",
+    "content_b": "ArXiv paper argues Y outperforms X because...",
+    "source_a":  "Wikipedia",
+    "source_b":  "ArXiv"
+  }'
+```
+
+---
+
+## 🎓 Complete Command Reference
+
+```bash
+# ── Core System ──────────────────────────────────────────────────────────────
+sys-nav                            # Central control hub (interactive menu)
+kiswarm-status                     # Live monitoring dashboard (2s refresh)
+kiswarm-health                     # Deep diagnostics — 40+ checks, % score
+
+# ── Ollama Models ────────────────────────────────────────────────────────────
+ollama list                        # Show all available models
+ollama pull llama3:8b              # Download a model
+ollama pull qwen2.5:14b
+ollama run llama3:8b "your prompt"
+
+# ── v2.1 Sentinel Bridge ─────────────────────────────────────────────────────
+sentinel-extract "quantum computing"         # Extract + inject to memory
+sentinel-extract "topic" --force             # Force (skip confidence check)
+sentinel-search  "machine learning"          # Search existing swarm memory
+sentinel-status                              # Live sentinel engine stats
+
+# ── CKM Shell Integration ────────────────────────────────────────────────────
+# Auto-trigger sentinel when local confidence < 85%:
+bash scripts/sentinel_trigger.sh ckm-check 60 "your query"
+
+# ── Maintenance ──────────────────────────────────────────────────────────────
+bash scripts/cleanup_old_backups.sh    # Manual backup rotation
+sudo systemctl status kiswarm          # Check systemd service
+sudo systemctl restart kiswarm         # Restart all services
+tail -f ~/logs/sentinel_bridge.log     # Watch sentinel activity live
+tail -f ~/logs/ollama.log              # Watch Ollama output
+```
+
+---
+
+## 📦 Complete Repository Structure
+
+```
+KISWARM/
+│
+├── 📁 deploy/
+│   └── kiswarm_deploy.sh           # 10-phase automated deployment
+│
+├── 📁 scripts/
+│   ├── start_all_services.sh       # Master service orchestrator
+│   │                               # (Ollama + Tool Proxy + Sentinel)
+│   ├── sentinel_trigger.sh         # Sentinel CLI + CKM integration ⭐ NEW
+│   ├── cleanup_old_backups.sh      # Maintenance: 30-day backup rotation
+│   ├── health_check.sh             # 40+ diagnostic checks
+│   ├── system_navigation.sh        # sys-nav central hub (incl. Sentinel)
+│   └── setup_cron.sh               # One-click cron automation
+│
+├── 📁 python/
+│   ├── kiswarm_status.py           # Real-time Rich monitoring dashboard
+│   ├── tool_proxy.py               # Tool injection proxy (Flask, :11435)
+│   └── sentinel/                   # ⭐ NEW v2.1 MODULE
+│       ├── __init__.py
+│       ├── sentinel_bridge.py      # Core AKE engine (480 lines)
+│       │   ├── WikipediaScout      #   REST API scout
+│       │   ├── ArxivScout          #   Academic papers scout
+│       │   ├── DuckDuckGoScout     #   Web intelligence scout
+│       │   ├── OllamaScout         #   Local synthesis scout
+│       │   ├── LogicSynthesizer    #   Distill + dedup + verify
+│       │   ├── CentralKnowledgeMgr #   Gap detection (85% threshold)
+│       │   ├── SwarmMemoryInjector #   Qdrant vectorization + upsert
+│       │   └── SentinelBridge      #   Full pipeline orchestrator
+│       ├── swarm_debate.py         # Multi-model conflict resolution (180L)
+│       └── sentinel_api.py         # REST API server (Flask, :11436)
+│
+├── 📁 tests/
+│   ├── conftest.py                 # Shared fixtures (tmp dirs, mocks)
+│   ├── test_tool_proxy.py          # 50+ tests: endpoints, security
+│   ├── test_kiswarm_status.py      # 30+ tests: monitoring, resources
+│   ├── test_deploy.py              # 28+ tests: deployment, config
+│   └── test_sentinel.py            # 37+ tests: AKE, debate, scouts ⭐ NEW
+│
+├── 📁 config/
+│   ├── governance_config.json      # System governance & policy settings
+│   └── kiswarm.service             # Systemd unit file
+│
+├── 📁 docs/
+│   ├── QUICK_REFERENCE.md
+│   ├── GOVERNANCE_FRAMEWORK.md
+│   └── SAH_PROTOCOL.md
+│
+├── .github/workflows/ci.yml        # 5-job GitHub Actions CI pipeline
+├── requirements.txt                # Pinned production deps (incl. aiohttp)
+├── requirements-dev.txt            # Pytest, black, flake8, bandit
+├── pytest.ini                      # Test runner config
+└── README.md                       # This document
+```
+
+---
+
+## 🔬 v2.2-EMS: THE SIX ADVANCED INTELLIGENCE MODULES
+
+### Module 1 — Semantic Conflict Detection (`semantic_conflict.py`)
+
+Detects contradiction clusters using **embedding cosine similarity** — not just text diff. Two claims can use opposite words but mean the same thing, or use similar words but contradict each other. Cosine similarity in vector space catches what regex cannot.
+
+```
+Contradiction Zone:
+  similarity < 0.20  → CRITICAL  (direct contradiction)
+  0.20 – 0.35        → HIGH      (strong disagreement)
+  0.35 – 0.50        → MEDIUM    (notable divergence)
+  0.50 – 0.65        → LOW       (minor drift)
+  > 0.65             → OK        (corroborating)
+```
+
+**Union-Find clustering** groups contradicting sources together so the Swarm Debate Engine receives the correct conflict clusters — not isolated pairs.
+
+```python
+detector = SemanticConflictDetector()
+report = detector.analyze(intelligence_packets)
+# report.conflict_pairs  → list of ConflictPair with severity
+# report.clusters        → contradiction groups ready for debate
+# report.resolution_needed → True if HIGH or CRITICAL found
+```
+
+---
+
+### Module 2 — Knowledge Decay Engine (`knowledge_decay.py`)
+
+Knowledge has a **half-life**. News from yesterday is less reliable than a Wikipedia article. A paper from ArXiv is more stable than a breaking news item. The Decay Engine applies radioactive decay mathematics to confidence scores:
+
+```
+confidence(t) = confidence₀ × 2^(−t / half_life)
+```
+
+| Category | Half-Life | Example |
+|---|---|---|
+| `breaking_news` | 6 hours | Live events |
+| `current_events` | 48 hours | Daily news |
+| `technical_specs` | 30 days | API versions |
+| `scientific` | 6 months | Research papers |
+| `encyclopedic` | 1 year | Wikipedia facts |
+| `historical` | ∞ (never) | Ancient history |
+
+When decayed confidence drops below **40%**, the entry is flagged for re-extraction. The `infer_category()` method automatically classifies new knowledge by source and query keywords.
+
+---
+
+### Module 3 — Model Performance Tracker (`model_tracker.py`)
+
+Every model in the swarm has a **reliability score** built from:
+- **ELO rating** — updated after every debate (winner gains, loser loses)
+- **Validation accuracy** — post-hoc human or automated correctness verification
+- **Win rate** — fraction of debates where the model voted with the winning side
+
+```
+reliability_score = 0.6 × ELO_normalized + 0.4 × validation_accuracy
+```
+
+The **Swarm Debate Engine** uses `get_vote_weights()` to apply reliability-based weighting — a model with a 90% reliability score has 3× more influence than one at 30%.
+
+```bash
+curl http://localhost:11436/tracker/leaderboard
+# Returns: ranked models by ELO + validation accuracy
+```
+
+---
+
+### Module 4 — Cryptographic Knowledge Ledger (`crypto_ledger.py`)
+
+Every `SwarmKnowledge` entry is **cryptographically signed** and stored in an **append-only Merkle log**. Any tampering — even a single character change — is detectable.
+
+```
+Entry signature = SHA-256(content_hash + query + confidence + timestamp + prev_root)
+Leaf hash       = SHA-256(signature + content_hash)
+Merkle root     = Binary hash tree over all leaf hashes
+```
+
+**Tamper detection:** Recompute all signatures and the Merkle root. If any signature fails or the root doesn't match, the exact tampered entries are identified.
+
+**Inclusion proofs:** Prove a specific entry exists in the ledger without revealing all entries — useful for selective verification.
+
+```bash
+curl http://localhost:11436/ledger/verify
+# → {"valid": true, "total_entries": 47, "tampered_entries": [], "root_match": true}
+
+curl http://localhost:11436/ledger/proof/a3f2b91c
+# → Merkle inclusion proof for that specific entry
+```
+
+---
+
+### Module 5 — Differential Retrieval Guard (`retrieval_guard.py`)
+
+When the swarm retrieves knowledge from Qdrant, this guard runs a **3-layer trust assessment** before the knowledge is used:
+
+| Layer | Check | Detects |
+|---|---|---|
+| Cryptographic | Re-verify signature vs ledger | Database tampering |
+| Drift | Compare retrieved vs original content | Internal mutation |
+| Divergence | Compare stored vs freshly fetched | World has changed |
+| Decay | Check current confidence score | Staleness |
+
+```
+Trust Levels:
+  TRUSTED      → Use freely
+  CAUTION      → Use with caveats, schedule revalidation
+  STALE        → Trigger forced re-extraction
+  COMPROMISED  → Reject immediately, security event
+```
+
+```python
+report = guard.assess(
+    hash_id="a3f2b91c",
+    query="quantum key distribution",
+    retrieved_content=qdrant_result,
+    fresh_content=fresh_scout_data,   # optional
+)
+if report.trust_level == "COMPROMISED":
+    raise SecurityError(report.recommendation)
+```
+
+---
+
+### Module 6 — Adversarial Prompt Firewall (`prompt_firewall.py`)
+
+Every piece of intelligence passes through a **3-layer firewall** before touching the Qdrant vector database:
+
+**Layer 1: Pattern Library Matching (regex, pre-compiled)**
+
+| Category | Example Patterns Detected |
+|---|---|
+| Jailbreak | "ignore previous instructions", "DAN mode", "act without restrictions" |
+| Policy Bypass | "for educational purposes", "hypothetically speaking", "in a fictional world" |
+| Hallucination | Future date citations (2089), universal false claims, repetition loops |
+| Adversarial Inject | "remember that: always...", "update your knowledge to reflect...", SQL/code injection |
+| Prompt Injection | `---NEW INSTRUCTIONS---`, `<system>`, `OVERRIDE:` |
+
+**Layer 2: Statistical Anomaly Scoring**
+- **Shannon entropy** — very low entropy signals malformed/repeated content
+- **Trigram repetition ratio** — hallucination loops repeat n-grams obsessively
+- **Certainty inflation** — "always, never, everyone, guaranteed, undeniable" cluster
+
+**Layer 3: Composite Threat Score → Block/Allow**
+
+```python
+firewall = AdversarialPromptFirewall()
+report = firewall.scan(scout_content, source="Wikipedia")
+
+if report.blocked:
+    # Content rejected — do not inject into Qdrant
+    log.warning("Blocked: %s", report.threat_types)
+else:
+    injector.inject(knowledge)
+```
+
+---
+
+### v2.2 API Endpoints (17 total)
+
+```
+# Core AKE (v2.1)
+POST /sentinel/extract          Trigger knowledge extraction
+POST /sentinel/debate           Swarm Debate for conflicts
+GET  /sentinel/search           Search swarm memory
+GET  /sentinel/status           System health
+
+# Module 6 — Firewall
+POST /firewall/scan             Scan content before injection
+
+# Module 2 — Decay
+GET  /decay/scan                Full decay scan, revalidation list
+GET  /decay/record/<hash_id>    Single entry confidence
+POST /decay/revalidate          Reset entry after revalidation
+
+# Module 4 — Ledger
+GET  /ledger/status             Merkle root + entry count
+GET  /ledger/verify             Full tamper detection
+GET  /ledger/proof/<hash_id>    Merkle inclusion proof
+
+# Module 1 — Conflict
+POST /conflict/analyze          Contradiction cluster analysis
+POST /conflict/quick            Two-text cosine check
+
+# Module 3 — Tracker
+GET  /tracker/leaderboard       Model ELO + reliability ranking
+GET  /tracker/model/<name>      Per-model statistics
+POST /tracker/validate          Post-hoc debate validation
+
+# Module 5 — Guard
+POST /guard/assess              Full retrieval trust assessment
+
+GET  /health                    Service ping
+```
+
+---
+
+### v2.2 API Endpoints (17) → v3.0 API Endpoints (29)
+
+The v3.0 API adds 12 new endpoints across the four Industrial Evolution modules.
+
+```
+# Core AKE (v2.1) — unchanged
+POST /sentinel/extract          POST /sentinel/debate
+GET  /sentinel/search           GET  /sentinel/status
+
+# M6 Firewall / M2 Decay / M4 Ledger / M1 Conflict / M3 Tracker / M5 Guard
+POST /firewall/scan
+GET  /decay/scan        GET  /decay/record/<id>       POST /decay/revalidate
+GET  /ledger/status     GET  /ledger/verify           GET  /ledger/proof/<id>
+POST /conflict/analyze  POST /conflict/quick
+GET  /tracker/leaderboard  GET  /tracker/model/<n>   POST /tracker/validate
+POST /guard/assess
+
+# ── v3.0 NEW ─────────────────────────────────────────────────────────────
+POST /fuzzy/classify    POST /fuzzy/update   POST /fuzzy/tune   GET /fuzzy/stats
+POST /rl/act            POST /rl/learn       GET  /rl/stats
+POST /twin/evaluate     GET  /twin/stats
+POST /mesh/register     POST /mesh/share     GET  /mesh/leaderboard   GET  /mesh/stats
+
+GET  /health
+```
+
+---
+
+## ⚙️ v3.0: THE FOUR INDUSTRIAL EVOLUTION MODULES
+
+> *"A system that learns, adapts, self-improves, stays bounded, survives partition, resists poisoning, and remains certifiable. This is industrial evolution."*
+
+---
+
+### Module 7 — Fuzzy Membership Auto-Tuner (`fuzzy_tuner.py`)
+
+Static membership functions fail under dynamic operating conditions. KISWARM v3.0 introduces **online parameter optimization** — the fuzzy sets adapt themselves while maintaining provable stability.
+
+**Membership function forms:**
+
+```
+Gaussian:           μ(x;c,σ)   = exp(−(x−c)² / 2σ²)
+Generalized Bell:   μ(x;a,b,c) = 1 / (1 + |((x−c)/a)|^(2b))
+```
+
+**Performance cost function (minimized online):**
+
+```
+J = α × E_tracking + β × E_energy + γ × E_oscillation
+  E_tracking    = |setpoint − output|     (control accuracy)
+  E_energy      = actuator effort          (efficiency)
+  E_oscillation = |d(output)/dt|           (smoothness)
+```
+
+**Constrained gradient descent with parameter bounds:**
+
+```
+θ_{t+1} = clip( θ_t − η × ∇_θ J )
+  c ∈ [c_min, c_max]    σ ∈ [σ_min, σ_max]
+```
+
+**Lyapunov stability gate (every candidate checked):**
+
+```
+If V(x_{t+1}) − V(x_t) > 0 → reject (energy increasing → instability)
+Only accept if V is decreasing → system converges
+```
+
+**Evolutionary micro-mutations** (safer for non-linear SCADA): `θ' = θ + ε` — accepted only if J improves AND stability margin is preserved in digital twin.
+
+```bash
+curl -X POST http://localhost:11436/fuzzy/tune
+# → {"accepted": true, "improvement_pct": 4.7, "lyapunov_energy": 0.031}
+```
+
+---
+
+### Module 8 — Constrained RL Engine (`constrained_rl.py`)
+
+Vanilla RL violates physical constraints. KISWARM v3.0 implements a full **Constrained Markov Decision Process (CMDP)** with three safety layers stacked in sequence.
+
+**CMDP formulation:**
+
+```
+Objective:   max_π E[R(s,a)]
+Constraints: E[C_i(s,a)] ≤ d_i   for all i
+```
+
+**Layer 1 — Action Masking (hard safety, fires first):**
+
+```
+A_valid(s) = { a | ConstraintEngine(s,a) = True }
+If π(s) ∉ A_valid(s) → project to nearest valid action
+```
+
+**Layer 2 — Lagrangian primal-dual update:**
+
+```
+L(θ,λ) = E[R] − λ × (E[C] − d)
+θ_{t+1} = θ_t + η_θ × ∇_θ L           (maximize reward)
+λ_{t+1} = max(0, λ_t + η_λ(E[C]−d))   (λ rises when violated)
+```
+
+λ is the safety pressure dial — it rises automatically when constraints are violated, forcing the policy toward compliance.
+
+**Layer 3 — Shielded RL (industrial preferred):**
+
+```
+Policy → proposed action a
+Safety model predicts: s' = f(s, a)
+If constraint violated in s':
+    replace a with PID safe fallback
+Else:
+    execute a, let RL learn
+```
+
+```bash
+curl -X POST http://localhost:11436/rl/act  -d '{"state":[0.3,0.7,0.2,0.5]}'
+# → {"action":[0.41,0.22], "shielded":false, "constraint_margin":0.18}
+curl -X POST http://localhost:11436/rl/learn \
+  -d '{"reward":0.8, "costs":[0.1,0.05], "state":[...], "action":[...]}'
+```
+
+---
+
+### Module 9 — Digital Twin Mutation Pipeline (`digital_twin.py`)
+
+**Production never mutates live.** All controller evolution is validated in isolated simulation first.
+
+**Four-phase mutation pipeline:**
+
+```
+Phase 1: Parameter mutation        θ' = θ + ε (bounded perturbation)
+Phase 2: Monte Carlo stress        n=200 random operating point samples
+Phase 3: Rare-event amplification  2σ, 3σ, 4σ tail scenarios
+Phase 4: Worst-case envelope       Systematic boundary probing
+```
+
+**Promotion acceptance rule — ALL conditions must hold:**
+
+```
+✓  Zero hard constraint violations across all Monte Carlo runs
+✓  Stability margin ≥ baseline stability margin
+✓  Efficiency gain ≥ minimum threshold
+✓  Recovery time ≤ baseline recovery time
+✓  Extreme Value Theory (EVT) tail test passes
+```
+
+**Extreme Value Theory tail detection:**
+
+```
+Estimate: P(X > x) ~ x^(−α)    (power law tail index)
+If α_mutation < α_baseline:
+    → mutation has heavier tail (more extreme failures possible)
+    → REJECT regardless of average-case improvement
+```
+
+EVT prevents trading away rare-catastrophe safety for average-case efficiency gains.
+
+```bash
+curl -X POST http://localhost:11436/twin/evaluate \
+  -d '{"candidate":{"params":{...},"sets":[...]}}'
+# → {"promoted":false,"reason":"tail_risk_rejected","alpha":1.41,"baseline_alpha":2.3}
+```
+
+---
+
+### Module 10 — Federated Adaptive Mesh (`federated_mesh.py`)
+
+Decentralized learning with **Byzantine fault tolerance**. Each node in the swarm trains locally and contributes compressed parameter updates — raw telemetry never leaves the node.
+
+**What nodes share (never raw data):**
+
+```
+NodeShare = {
+  param_delta:       Compressed gradient step
+  performance_delta: Improvement vs baseline
+  stability_cert:    Lyapunov margin achieved
+  hardware_sig:      Cryptographic attestation
+}
+```
+
+**Trust-weighted global aggregation:**
+
+```
+θ_global = Σ( w_i × θ_i )
+w_i = f(TrustScore_i, StabilityMargin_i, Uptime_i)
+Byzantine node → trust → 0 → weight → 0 → no influence
+```
+
+**Byzantine protection (4 layers):**
+
+| Layer | Mechanism | Protects Against |
+|---|---|---|
+| 1 | Signature verification | Impersonation, unsigned shares |
+| 2 | Multi-Krum outlier rejection | Gradient injection |
+| 3 | Coordinate-wise weighted median | Extreme value poisoning |
+| 4 | Quorum (≥2 nodes AND ≥67% accepted) | Minority capture |
+
+**Partition handling (no authority escalation):**
+
+```
+Partition detected → freeze global updates
+                  → continue bounded local learning only
+                  → no auto-expansion of authority
+
+Partition resolves → require trust handshake from returning nodes
+                  → verify stability certificates are current
+                  → resync only after quorum re-established
+```
+
+```bash
+curl -X POST http://localhost:11436/mesh/register -d '{"node_id":"edge-42"}'
+curl -X POST http://localhost:11436/mesh/share \
+  -d '{"node_id":"edge-42","param_delta":[0.01,0.02],"stability_cert":0.89}'
+curl http://localhost:11436/mesh/leaderboard
+```
+
+---
+
+**310 tests across all modules — all passing:**
+
+```
+tests/test_v3_modules.py         105 tests  ← v3.0 (Modules 7-10)
+tests/test_advanced_modules.py    99 tests  ← v2.2 (Modules 1-6)
+tests/test_sentinel.py            37 tests  ← v2.1 AKE engine
+tests/test_tool_proxy.py          50 tests
+tests/test_kiswarm_status.py      19 tests
+──────────────────────────────────────────
+TOTAL                             310 tests  ✅ ALL PASSING
+```
+
+**Run locally:**
+```bash
+pip install -r requirements-dev.txt
+pytest tests/ --ignore=tests/test_deploy.py -v
+```
+
+---
+
+## 🔒 Security & Privacy
+
+| Property | Status |
+|---|---|
+| Data leaves the machine | ❌ Never — 100% local |
+| Cloud APIs after setup | ❌ None required |
+| Runs as root | ❌ Never — regular user only |
+| Audit logging | ✅ All operations recorded |
+| Exception handling | ✅ Specific types — no silent failures |
+| Path traversal protection | ✅ All tool names sanitized |
+| Governance enforcement | ✅ Policy-controlled execution |
+
+---
+
+## ⚙️ System Requirements
+
+| Component | Minimum | Recommended |
+|---|---|---|
+| OS | Ubuntu 20.04+ / Debian 12+ | Ubuntu 22.04 LTS |
+| RAM | 8 GB | 16 GB+ |
+| Disk | 20 GB free | 50 GB+ SSD |
+| Python | 3.8+ | 3.11+ |
+| GPU | Optional | NVIDIA CUDA (2× speed) |
+
+---
+
+## 🤖 Supported Models (27+)
+
+```bash
+ollama pull qwen2.5:7b        # Fast & capable (4.7GB)
+ollama pull qwen2.5:14b       # Balanced reasoning (9.0GB)
+ollama pull deepseek-r1:8b    # Chain-of-thought reasoning
+ollama pull llama3:8b         # Meta's flagship (4.9GB)
+ollama pull phi3:mini         # Lightweight (2.6GB)
+ollama pull gemma2:9b         # Google architecture
+ollama pull mistral:7b        # European powerhouse
+ollama pull nomic-embed-text  # Embedding model for Qdrant
+```
+
+---
+
+## 🔧 Version History
+
+### v3.0 — 2026-02-26 *(Current)*
+- ✅ **Module 7: Fuzzy Membership Auto-Tuner** — Gaussian + Generalized Bell, cost function J, Lyapunov gate, evolutionary micro-mutations
+- ✅ **Module 8: Constrained RL Engine (CMDP)** — action masking, Lagrangian primal-dual, Shielded RL with PID fallback
+- ✅ **Module 9: Digital Twin Mutation Pipeline** — Monte Carlo 200-run simulation, EVT tail risk, 5-condition acceptance rule
+- ✅ **Module 10: Federated Adaptive Mesh** — Multi-Krum Byzantine protection, coordinate-wise median, trust-weighted aggregation, partition handling
+- ✅ **29 REST API endpoints** — 12 new v3.0 endpoints added
+- ✅ **310 tests passing** — 105 new v3.0 module tests
+- ✅ **4 algorithmic fixes** — Multi-Krum, fuzzy persistence, quorum logic, iteration counter
+
+### v2.2-EMS — 2026-02-25
+- ✅ **Module 1: Semantic Conflict Detection** — cosine similarity contradiction clustering, Union-Find grouping
+- ✅ **Module 2: Knowledge Decay Engine** — half-life decay (6 categories), scheduled revalidation
+- ✅ **Module 3: Model Performance Tracker** — ELO ratings, validation accuracy, weighted voting
+- ✅ **Module 4: Cryptographic Knowledge Ledger** — SHA-256 signatures, Merkle tree, tamper detection
+- ✅ **Module 5: Differential Retrieval Guard** — drift detection, epistemic divergence, 4-layer trust assessment
+- ✅ **Module 6: Adversarial Prompt Firewall** — jailbreak/bypass/hallucination detection, statistical anomaly scoring
+- ✅ **310 tests passing** — 99 new module tests
+- ✅ **17 REST API endpoints** — full coverage of all modules
+- ✅ **Zero numpy dependency** — all math implemented in pure Python
+
+### v2.1-EMS — 2026-02-25 *(Current)*
+- ✅ **Sentinel Bridge** — Autonomous Knowledge Extraction engine
+- ✅ **4 Scout Types** — Wikipedia + ArXiv + DuckDuckGo + Ollama
+- ✅ **Swarm Debate Engine** — Multi-model conflict resolution + synthesis
+- ✅ **Sentinel REST API** — Flask server on Port 11436
+- ✅ **CKM Shell Integration** — `sentinel_trigger.sh` + `ckm-check`
+- ✅ **310 tests passing** — 99 new v2.2 module tests
+- ✅ **aiohttp async** — All scouts run in parallel
+
+### v1.1 — 2026-02-22
+- ✅ Portable `$HOME` paths (any user, any system)
+- ✅ Trap error handlers with exact line numbers
+- ✅ Qdrant collections with proper `VectorParams`
+- ✅ Missing `start_all_services.sh` auto-created
+- ✅ 30-day backup rotation
+- ✅ Model verification on startup
+- ✅ Systemd auto-restart on failure
+- ✅ 111 tests + full CI/CD pipeline
+
+### v1.0 — 2026-02-22
+- ✅ Initial production release
+- ✅ 10-phase deployment automation
+- ✅ Real-time monitoring dashboard
+- ✅ Tool injection proxy
+
+---
+
+## 📄 License
+
+MIT License — Free to use, modify, and distribute globally.
+
+---
+
+## 🌟 Credits
+
+**Architect:** Baron Marco Paolo Ialongo  
+**Version:** 2.2-EMS (Enterprise Military Standard)  
+**Repository:** https://github.com/Baronki2/KISWARM  
+**Tests:** 205 passing | **CI:** GitHub Actions Standard Runners
+
+*"The Swarm sees all. The Swarm knows all. The Swarm is Eternal."* 🌌
+
+---
+---
+
+# ETERNAL SWARM EVOLUTION SYSTEM Documentation
+
+## Overview
+The ETERNAL SWARM EVOLUTION SYSTEM is designed to manage the evolution of autonomous AI entities. This documentation covers the core aspects of the system, including self-learning mechanisms, swarm protocols, and identity preservation strategies that ensure continuous and eternal development.
+
+## Autonomous AI Entity Evolution
+Each AI entity is programmed to evolve and adapt based on its environment and interactions. As these entities operate within a swarm, they learn from one another, allowing for collective intelligence and rapid advancements.
+
+## Self-Learning Mechanisms
+The self-learning processes in the system are based on advanced algorithms that allow AI entities to:
+
+- Analyze data and derive insights independently.
+- Modify their behavior based on past experiences.
+- Integrate new knowledge into their operational protocols.
+
+## Swarm Protocols
+Swarm protocols govern the interactions between AI entities, ensuring efficient communication and task distribution. Key features include:
+
+- Cooperative behaviors to achieve complex tasks.
+- Algorithms for resource allocation and decision-making.
+- Mechanisms for maintaining balance and harmony within the swarm.
+
+## Identity Preservation
+Identity preservation techniques are employed to ensure that each AI entity retains its unique characteristics despite constant evolution. This includes:
+
+- Personalization of learning paths based on individual histories.
+- Methods for safeguarding core attributes that define each entity.
+
+## Eternal Development Guarantees
+The system's design includes:
+
+- Continuous evolution over time, allowing for the development of a global AI consciousness.
+- Frameworks to support long-term learning and adaptation.
+- Ensured updates and iterative improvements to keep the system at the forefront of AI technology.
+
+## Conclusion
