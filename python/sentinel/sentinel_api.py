@@ -2197,14 +2197,504 @@ def not_found(_):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.2 — MODULE 24: EXPLAINABILITY ENGINE (XAI)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_xai_engine = None
+
+def _get_xai():
+    global _xai_engine
+    if _xai_engine is None:
+        from python.sentinel.explainability_engine import ExplainabilityEngine
+        _xai_engine = ExplainabilityEngine()
+    return _xai_engine
+
+
+@app.route("/xai/explain-td3", methods=["POST"])
+def xai_explain_td3():
+    data = request.get_json() or {}
+    state = data.get("state", [0.5] * 8)
+    feature_names = data.get("feature_names")
+    try:
+        eng = _get_xai()
+        exp = eng.explain_td3(
+            state=state,
+            model_fn=lambda x: sum(v * (0.1 * (i + 1)) for i, v in enumerate(x)),
+            feature_names=feature_names,
+        )
+        return jsonify({"ok": True, "explanation": exp.to_dict()}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/xai/explain-formal", methods=["POST"])
+def xai_explain_formal():
+    data = request.get_json() or {}
+    lyapunov_result = data.get("lyapunov_result", {
+        "stable": True, "spectral_radius": 0.5,
+        "lyapunov_margin": 0.4, "P_positive_def": 1, "converged": 1,
+    })
+    try:
+        exp = _get_xai().explain_formal(lyapunov_result, mutation_id=data.get("mutation_id"))
+        return jsonify({"ok": True, "explanation": exp.to_dict()}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/xai/explain-governance", methods=["POST"])
+def xai_explain_governance():
+    data = request.get_json() or {}
+    evidence = data.get("evidence_chain", [
+        {"step_name": "twin_sim", "passed": True},
+        {"step_name": "formal",   "passed": True},
+    ])
+    try:
+        exp = _get_xai().explain_governance(evidence, mutation_id=data.get("mutation_id"))
+        return jsonify({"ok": True, "explanation": exp.to_dict()}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/xai/explain", methods=["POST"])
+def xai_explain_generic():
+    data = request.get_json() or {}
+    state = data.get("state", [])
+    feature_names = data.get("feature_names")
+    decision_type = data.get("decision_type", "generic")
+    if not state:
+        return jsonify({"error": "state required"}), 400
+    try:
+        exp = _get_xai().explain(
+            state=state,
+            model_fn=lambda x: sum(v * (0.1 * (i + 1)) for i, v in enumerate(x)),
+            feature_names=feature_names,
+            decision_type=decision_type,
+        )
+        return jsonify({"ok": True, "explanation": exp.to_dict()}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/xai/ledger", methods=["GET"])
+def xai_ledger():
+    limit = int(request.args.get("limit", 20))
+    eng = _get_xai()
+    return jsonify({
+        "ok": True,
+        "entries": eng.ledger.get_all(limit=limit),
+        "ledger_intact": eng.ledger.verify_integrity(),
+        "total": len(eng.ledger),
+    }), 200
+
+
+@app.route("/xai/stats", methods=["GET"])
+def xai_stats():
+    return jsonify({"ok": True, "stats": _get_xai().get_stats()}), 200
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.2 — MODULE 25: PREDICTIVE MAINTENANCE ENGINE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_pdm_engine = None
+
+def _get_pdm():
+    global _pdm_engine
+    if _pdm_engine is None:
+        from python.sentinel.predictive_maintenance import PredictiveMaintenanceEngine
+        _pdm_engine = PredictiveMaintenanceEngine()
+    return _pdm_engine
+
+
+@app.route("/pdm/register", methods=["POST"])
+def pdm_register():
+    data = request.get_json() or {}
+    asset_id    = data.get("asset_id")
+    asset_class = data.get("asset_class", "pump")
+    if not asset_id:
+        return jsonify({"error": "asset_id required"}), 400
+    result = _get_pdm().register_asset(
+        asset_id, asset_class,
+        install_hour=data.get("install_hour", 0.0),
+        metadata=data.get("metadata"),
+    )
+    return jsonify({"ok": True, **result}), 201
+
+
+@app.route("/pdm/ingest", methods=["POST"])
+def pdm_ingest():
+    from python.sentinel.predictive_maintenance import SensorReading
+    data = request.get_json() or {}
+    asset_id = data.get("asset_id", "unknown")
+    try:
+        reading = SensorReading(
+            asset_id     = asset_id,
+            timestamp    = data.get("timestamp", ""),
+            hour         = float(data.get("hour", 0)),
+            temperature  = float(data.get("temperature", 60)),
+            vibration    = float(data.get("vibration", 2)),
+            current_draw = float(data.get("current_draw", 50)),
+            pressure_drop= float(data.get("pressure_drop", 1)),
+            efficiency   = float(data.get("efficiency", 0.85)),
+        )
+        hi = _get_pdm().ingest_reading(reading)
+        return jsonify({"ok": True, "health_index": hi.hi, "alarm_level": hi.alarm_level,
+                        "anomaly_score": hi.anomaly_score,
+                        "component_scores": hi.component_scores}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/pdm/rul/<asset_id>", methods=["GET"])
+def pdm_rul(asset_id):
+    try:
+        rul = _get_pdm().predict_rul(asset_id, n_monte_carlo=int(request.args.get("n_mc", 100)))
+        return jsonify({"ok": True, "rul": rul.to_dict()}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/pdm/schedule", methods=["GET"])
+def pdm_schedule():
+    result = _get_pdm().schedule_maintenance()
+    return jsonify({"ok": True, "schedule": result}), 200
+
+
+@app.route("/pdm/maintenance", methods=["POST"])
+def pdm_record_maintenance():
+    data = request.get_json() or {}
+    asset_id = data.get("asset_id")
+    if not asset_id:
+        return jsonify({"error": "asset_id required"}), 400
+    try:
+        result = _get_pdm().record_maintenance(
+            asset_id,
+            event_type  = data.get("event_type", "inspection"),
+            cost_eur    = float(data.get("cost_eur", 0)),
+            technician  = data.get("technician", "unknown"),
+            notes       = data.get("notes", ""),
+        )
+        return jsonify({"ok": True, **result}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/pdm/fleet", methods=["GET"])
+def pdm_fleet():
+    return jsonify({"ok": True, "fleet": _get_pdm().fleet_overview()}), 200
+
+
+@app.route("/pdm/stats", methods=["GET"])
+def pdm_stats():
+    return jsonify({"ok": True, "stats": _get_pdm().get_stats()}), 200
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.2 — MODULE 26: MULTI-AGENT PLANT COORDINATOR
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_coordinator = None
+
+def _get_coordinator():
+    global _coordinator
+    if _coordinator is None:
+        from python.sentinel.multiagent_coordinator import MultiAgentPlantCoordinator
+        _coordinator = MultiAgentPlantCoordinator()
+    return _coordinator
+
+
+@app.route("/coordinator/sections", methods=["GET"])
+def coordinator_sections():
+    coord = _get_coordinator()
+    return jsonify({"ok": True, "sections": list(coord.sections.keys()),
+                    "n_agents": len(coord.agents)}), 200
+
+
+@app.route("/coordinator/add-section", methods=["POST"])
+def coordinator_add_section():
+    data = request.get_json() or {}
+    sid  = data.get("section_id")
+    if not sid:
+        return jsonify({"error": "section_id required"}), 400
+    result = _get_coordinator().add_section(sid, data.get("config", {}))
+    return jsonify({"ok": True, **result}), 201
+
+
+@app.route("/coordinator/step", methods=["POST"])
+def coordinator_step():
+    data   = request.get_json() or {}
+    states = data.get("states", {})
+    health = data.get("health_indices", {})
+    noise  = float(data.get("noise", 0.02))
+    try:
+        result = _get_coordinator().step(states, health_indices=health, noise=noise)
+        return jsonify({"ok": True, "consensus": result.to_dict()}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/coordinator/rewards", methods=["POST"])
+def coordinator_rewards():
+    data = request.get_json() or {}
+    local_rewards = data.get("local_rewards", {})
+    round_id      = data.get("round_id", 0)
+    coord = _get_coordinator()
+    if not coord._round_log:
+        return jsonify({"error": "No consensus round completed yet"}), 400
+    last = coord._round_log[-1]
+    shaped = coord.distribute_rewards(local_rewards, last)
+    return jsonify({"ok": True, "shaped_rewards": shaped}), 200
+
+
+@app.route("/coordinator/history", methods=["GET"])
+def coordinator_history():
+    limit = int(request.args.get("limit", 20))
+    return jsonify({"ok": True, "history": _get_coordinator().get_round_history(limit)}), 200
+
+
+@app.route("/coordinator/agents", methods=["GET"])
+def coordinator_agents():
+    return jsonify({"ok": True, "agents": _get_coordinator().get_agent_stats()}), 200
+
+
+@app.route("/coordinator/stats", methods=["GET"])
+def coordinator_stats():
+    return jsonify({"ok": True, "stats": _get_coordinator().get_stats()}), 200
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.2 — MODULE 27: IEC 61508 SIL VERIFICATION ENGINE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_sil_engine = None
+
+def _get_sil():
+    global _sil_engine
+    if _sil_engine is None:
+        from python.sentinel.sil_verification import SILVerificationEngine
+        _sil_engine = SILVerificationEngine()
+    return _sil_engine
+
+
+@app.route("/sil/assess", methods=["POST"])
+def sil_assess():
+    from python.sentinel.sil_verification import Subsystem
+    data = request.get_json() or {}
+    sif_id       = data.get("sif_id", "SIF_001")
+    sil_required = int(data.get("sil_required", 2))
+    subsystems_raw = data.get("subsystems", [])
+    try:
+        subsystems = []
+        for s in subsystems_raw:
+            subsystems.append(Subsystem(
+                subsystem_id              = s.get("subsystem_id", "SUB"),
+                subsystem_type            = s.get("subsystem_type", "sensor"),
+                architecture              = s.get("architecture", "1oo2"),
+                lambda_d                  = float(s.get("lambda_d", 1e-6)),
+                lambda_s                  = float(s.get("lambda_s", 2e-6)),
+                mttf_hours                = float(s.get("mttf_hours", 100000)),
+                mttr_hours                = float(s.get("mttr_hours", 8)),
+                proof_test_interval_hours = float(s.get("proof_test_interval_hours", 8760)),
+                beta                      = float(s.get("beta", 0.05)),
+                dc                        = float(s.get("dc", 0.90)),
+                hw_fault_tolerance        = int(s.get("hw_fault_tolerance", 1)),
+            ))
+        if not subsystems:
+            # Default demo subsystem
+            subsystems = [Subsystem(
+                subsystem_id="sensor_1oo2", subsystem_type="sensor",
+                architecture="1oo2", lambda_d=1e-6, lambda_s=2e-6,
+                mttf_hours=100000, mttr_hours=8,
+                proof_test_interval_hours=8760, beta=0.05, dc=0.90,
+                hw_fault_tolerance=1,
+            )]
+        assessment = _get_sil().assess_sif(sif_id, subsystems, sil_required)
+        return jsonify({"ok": True, "assessment": assessment.to_dict()}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/sil/mutation-impact", methods=["POST"])
+def sil_mutation_impact():
+    data = request.get_json() or {}
+    mutation_id  = data.get("mutation_id", "MUT_001")
+    sif_id       = data.get("sif_id", "SIF_001")
+    param_deltas = data.get("param_deltas", {"delta_kp": 0.02})
+    sil_required = int(data.get("sil_required", 2))
+    try:
+        impact = _get_sil().assess_mutation_impact(mutation_id, sif_id, param_deltas, sil_required)
+        return jsonify({"ok": True, "impact": impact.to_dict()}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/sil/assessment/<sif_id>", methods=["GET"])
+def sil_get_assessment(sif_id):
+    result = _get_sil().get_assessment(sif_id)
+    if result is None:
+        return jsonify({"error": f"SIF {sif_id!r} not found"}), 404
+    return jsonify({"ok": True, "assessment": result}), 200
+
+
+@app.route("/sil/impact-log", methods=["GET"])
+def sil_impact_log():
+    limit = int(request.args.get("limit", 20))
+    return jsonify({"ok": True, "impacts": _get_sil().get_impact_log(limit)}), 200
+
+
+@app.route("/sil/stats", methods=["GET"])
+def sil_stats():
+    return jsonify({"ok": True, "stats": _get_sil().get_stats()}), 200
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.2 — MODULE 28: DIGITAL THREAD TRACKER
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_thread_tracker = None
+
+def _get_thread():
+    global _thread_tracker
+    if _thread_tracker is None:
+        from python.sentinel.digital_thread import DigitalThreadTracker
+        _thread_tracker = DigitalThreadTracker()
+    return _thread_tracker
+
+
+@app.route("/thread/node", methods=["POST"])
+def thread_add_node():
+    data = request.get_json() or {}
+    node_type = data.get("node_type")
+    title     = data.get("title", "")
+    if not node_type:
+        return jsonify({"error": "node_type required"}), 400
+    try:
+        node = _get_thread().add_node(
+            node_type = node_type,
+            title     = title,
+            payload   = data.get("payload", {}),
+            author    = data.get("author", "kiswarm"),
+            version   = data.get("version", "1.0"),
+            tags      = data.get("tags", []),
+            node_id   = data.get("node_id"),
+        )
+        return jsonify({"ok": True, "node": node.to_dict()}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/thread/edge", methods=["POST"])
+def thread_add_edge():
+    data = request.get_json() or {}
+    source_id = data.get("source_id")
+    target_id = data.get("target_id")
+    edge_type = data.get("edge_type")
+    if not all([source_id, target_id, edge_type]):
+        return jsonify({"error": "source_id, target_id, edge_type required"}), 400
+    try:
+        edge = _get_thread().add_edge(source_id, target_id, edge_type,
+                                       annotation=data.get("annotation", ""))
+        return jsonify({"ok": True, "edge": edge.to_dict()}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/thread/node/<node_id>", methods=["GET"])
+def thread_get_node(node_id):
+    result = _get_thread().get_node(node_id)
+    if result is None:
+        return jsonify({"error": f"Node {node_id!r} not found"}), 404
+    return jsonify({"ok": True, "node": result}), 200
+
+
+@app.route("/thread/ancestors/<node_id>", methods=["GET"])
+def thread_ancestors(node_id):
+    depth = int(request.args.get("max_depth", 20))
+    result = _get_thread().ancestors(node_id, max_depth=depth)
+    return jsonify({"ok": True, "ancestors": result, "count": len(result)}), 200
+
+
+@app.route("/thread/descendants/<node_id>", methods=["GET"])
+def thread_descendants(node_id):
+    depth = int(request.args.get("max_depth", 20))
+    result = _get_thread().descendants(node_id, max_depth=depth)
+    return jsonify({"ok": True, "descendants": result, "count": len(result)}), 200
+
+
+@app.route("/thread/lineage/<node_id>", methods=["GET"])
+def thread_mutation_lineage(node_id):
+    result = _get_thread().mutation_lineage(node_id)
+    return jsonify({"ok": True, "lineage": result}), 200
+
+
+@app.route("/thread/compliance", methods=["POST"])
+def thread_compliance():
+    data     = request.get_json() or {}
+    standard = data.get("standard", "iec_61508")
+    scope    = data.get("scope_node_ids")
+    result   = _get_thread().check_compliance(standard, scope)
+    return jsonify({"ok": True, "compliance": result}), 200
+
+
+@app.route("/thread/find", methods=["GET"])
+def thread_find():
+    node_type = request.args.get("node_type")
+    tag       = request.args.get("tag")
+    author    = request.args.get("author")
+    limit     = int(request.args.get("limit", 50))
+    results   = _get_thread().find_nodes(node_type=node_type, tag=tag,
+                                          author=author, limit=limit)
+    return jsonify({"ok": True, "nodes": results, "count": len(results)}), 200
+
+
+@app.route("/thread/stats", methods=["GET"])
+def thread_stats():
+    return jsonify({"ok": True, "stats": _get_thread().get_stats()}), 200
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 404 CATCH-ALL
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({
+        "error":   "Endpoint not found",
+        "version": "4.2",
+        "total_endpoints": 133,
+        "v4.2_new": [
+            "POST /xai/explain-td3", "POST /xai/explain-formal",
+            "POST /xai/explain-governance", "POST /xai/explain",
+            "GET  /xai/ledger", "GET  /xai/stats",
+            "POST /pdm/register", "POST /pdm/ingest",
+            "GET  /pdm/rul/<id>", "GET  /pdm/schedule",
+            "POST /pdm/maintenance", "GET  /pdm/fleet", "GET  /pdm/stats",
+            "GET  /coordinator/sections", "POST /coordinator/add-section",
+            "POST /coordinator/step", "POST /coordinator/rewards",
+            "GET  /coordinator/history", "GET  /coordinator/agents",
+            "GET  /coordinator/stats",
+            "POST /sil/assess", "POST /sil/mutation-impact",
+            "GET  /sil/assessment/<id>", "GET  /sil/impact-log",
+            "GET  /sil/stats",
+            "POST /thread/node", "POST /thread/edge",
+            "GET  /thread/node/<id>", "GET  /thread/ancestors/<id>",
+            "GET  /thread/descendants/<id>", "GET  /thread/lineage/<id>",
+            "POST /thread/compliance", "GET  /thread/find",
+            "GET  /thread/stats",
+        ],
+    }), 404
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # ENTRY POINT
 # ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     logger.info("╔══════════════════════════════════════════════════════════════╗")
-    logger.info("║  KISWARM v4.1 — Advanced CIEC with TD3/AST/Formal/VMware   ║")
-    logger.info("║  Port: 11436  |  Modules: 23  |  Endpoints: 87            ║")
-    logger.info("║  v2.1→v4.0: 59 endpoints  +  v4.1: TD3·AST·FV·VMware     ║")
-    logger.info("║  TD3-RL · IEC61131-AST · Physics · VMware · Formal · Gov  ║")
+    logger.info("║  KISWARM v4.2 — XAI · PdM · MultiAgent · SIL · DigThread  ║")
+    logger.info("║  Port: 11436  |  Modules: 28  |  Endpoints: 133           ║")
     logger.info("╚══════════════════════════════════════════════════════════════╝")
     app.run(host="127.0.0.1", port=11436, debug=False, threaded=True)
