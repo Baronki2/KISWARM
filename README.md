@@ -1,13 +1,13 @@
 # 🌟 KISWARM v4.3 — Cognitive Industrial Evolution Core + Industrial Cybersecurity
 
 > **ETERNAL SWARM EVOLUTION SYSTEM** — Enterprise Military Standard Edition  
-> *Production-Hardened · Self-Healing · Industrial Cognitive AI · 948 Tests Passing · IEC 62443 Secured*  
+> *Production-Hardened · Self-Healing · Industrial Cognitive AI · 1040 Tests Passing · IEC 62443 Secured*  
 > **Architect:** Baron Marco Paolo Ialongo
 
 [![Version](https://img.shields.io/badge/version-4.3-CIEC+SEC-blue.svg)](https://github.com/Baronki2/KISWARM)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml/badge.svg)](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-948%20passing-success.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-1040%20passing-success.svg)](tests/)
 [![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg)](README.md)
 [![Endpoints](https://img.shields.io/badge/REST%20endpoints-148-orange.svg)](python/sentinel/sentinel_api.py)
 [![Modules](https://img.shields.io/badge/AI%20modules-30-purple.svg)](python/sentinel/)
@@ -2013,3 +2013,241 @@ The system's design includes:
 - Ensured updates and iterative improvements to keep the system at the forefront of AI technology.
 
 ## Conclusion
+
+---
+
+## v4.4 New Modules (2) — Self-Healing Swarm Auditor
+
+**Release:** 2026-03-01 | **Tests:** 1040 | **Modules:** 32 | **Endpoints:** 172
+
+### Philosophy: "Selbstanalyse + Selbstheilung = unverletzbare Schwarmintegrität"
+
+KISWARM v4.4 adds the **Self-Healing Swarm Auditor** — a permanent multi-node swarm that autonomously monitors, validates, and repairs all 6 industrial pipelines 24/7. This is the DNA of the system: every pipeline step is continuously audited, every inconsistency self-healed, every event immortally recorded.
+
+---
+
+### Module 31: Swarm Auditor Core (`swarm_auditor.py`)
+
+**The foundation layer** — DAG persistence, IEC 61508 PFD/SIL recalculation, SHA-256 chained audit ledger, and the 6-pipeline sweep engine.
+
+#### Pipeline Flow
+```
+Mutation → SIL → Digital Thread → Audit → Consensus → Immortality
+```
+
+#### Key Components
+
+| Component | Description |
+|-----------|-------------|
+| `AuditLedger` | Append-only SHA-256 chained log — tamper-evident, survives restarts |
+| `DAGNode / DAGEdge / PipelineDAG` | Typed DAG data model with serialisation |
+| `run_pfd_calculation()` | IEC 61508 PFD for 1oo1, 1oo2, 2oo3 architectures |
+| `run_sil_band_check()` | Classify PFD into SIL 1–4 band, check compliance |
+| `repair_dag()` | Remove dangling edges, break cycles, patch missing λd |
+| `validate_dag_consistency()` | Cross-pipeline structural validation |
+| `run_pipeline_step()` | Load → validate → repair → save one pipeline |
+| `run_audit_cycle()` | Full 6-pipeline sweep with cross-pipeline checks |
+| `populate_dummy_data()` | Realistic test data for all 6 pipelines |
+
+#### IEC 61508 PFD Architecture Support
+
+```
+1oo1:  PFD_avg = λd × TI / 2
+1oo2:  PFD_avg = (λd × TI)² / 3      ← fault-tolerant redundancy
+2oo3:  PFD_avg = 3(λd×TI/2)² − 2(λd×TI/2)³  ← voted architecture
+```
+
+#### Audit Ledger — SHA-256 Chain
+
+```
+Entry N:   { message, timestamp, level, source, prev_hash }
+                                                    ↑
+                                              SHA-256(Entry N-1)
+```
+
+Every entry chains to the previous. Tampering any entry breaks the entire chain — detectable via `verify_integrity()`.
+
+#### Self-Repair Actions
+
+| Issue Detected | Repair Action |
+|----------------|---------------|
+| Dangling edge (references ghost node) | Edge silently removed |
+| Cycle in DAG | Last edge in cycle removed until acyclic |
+| SIL node missing `lambda_d` | Patched to 1×10⁻⁶ /h with 1oo1, TI=8760h |
+| Missing pipeline in snapshot | Flagged in issues; re-populated on next cycle |
+
+---
+
+### Module 32: Self-Healing DAG Swarm (`swarm_dag.py`)
+
+**The orchestration layer** — multi-node asyncio swarm with Byzantine-majority consensus, permanent background auditor, and real-time self-healing propagation.
+
+#### Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                    SwarmCoordinator                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
+│  │ SwarmNode 1  │  │ SwarmNode 2  │  │ SwarmNode 3  │          │
+│  │ asyncio loop │  │ asyncio loop │  │ asyncio loop │          │
+│  │  ↕ consensus │  │  ↕ consensus │  │  ↕ consensus │          │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘          │
+│         └────────────────consensus────────────┘                  │
+│                    PermanentAuditor                              │
+│                    (background singleton)                         │
+└──────────────────────────────────────────────────────────────────┘
+                              ↓
+              sentinel_data/ (shared JSON files)
+              audit_ledger.jsonl (append-only)
+```
+
+#### Consensus Algorithm
+
+Each cycle, every node:
+
+1. Runs all 6 pipeline steps locally → gets a per-pipeline result dict
+2. Computes `SHA-256[:16]` of each pipeline's result → **DAG hash**
+3. Collects peer hashes (read from `last_hashes` dict)
+4. Applies **majority vote**: `⌊N/2⌋ + 1` votes needed for quorum
+5. If **outvoted** on any pipeline → self-heals by reloading from shared storage
+6. Stores own snapshot + hashes for peers to compare against
+
+```python
+# Consensus resolution:
+majority = _majority_hash(peer_hashes, my_hash)
+if majority != my_hash:
+    dag = load_pipeline_dag(pipeline)   # reload from ground truth
+    dag, _ = repair_dag(dag)            # re-validate
+    save_pipeline_dag(dag)              # persist
+    self._heals += 1
+```
+
+#### Node Lifecycle (Async)
+
+```
+node.start(peers, interval_seconds=20)
+  → asyncio.ensure_future(run_audit_cycle(peers, interval))
+      ↑ runs forever until node.stop()
+      ↑ 20-second interval between cycles
+      ↑ all exceptions caught and logged — node never crashes
+```
+
+#### Classes
+
+| Class | Role |
+|-------|------|
+| `SwarmAuditorNode` | Individual swarm member; async cycle, consensus, self-heal |
+| `PermanentAuditor` | Singleton background auditor; adds fallback audit path |
+| `SwarmCoordinator` | Fleet manager; N nodes + permanent auditor; consensus view |
+
+---
+
+### v4.4 API Endpoints (24 new)
+
+#### Module 31: Auditor Core (9 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/auditor/run` | Trigger full 6-pipeline audit cycle |
+| `GET`  | `/auditor/logs` | Retrieve audit ledger entries |
+| `GET`  | `/auditor/ledger-integrity` | Verify SHA-256 chain integrity |
+| `GET`  | `/auditor/pipeline/<name>` | DAG state for one pipeline |
+| `POST` | `/auditor/pipeline/<name>/reset` | Reset + repopulate pipeline |
+| `POST` | `/auditor/pipeline/<name>/add-node` | Add a node to pipeline DAG |
+| `POST` | `/auditor/pipeline/<name>/add-edge` | Add an edge to pipeline DAG |
+| `POST` | `/auditor/populate-dummy` | Repopulate all 6 pipelines with test data |
+| `GET`  | `/auditor/stats` | Auditor statistics + ledger status |
+
+#### Module 32: Swarm DAG Coordinator (15 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/swarm/start` | Start all swarm nodes + permanent auditor |
+| `POST` | `/swarm/stop` | Stop all swarm nodes + permanent auditor |
+| `GET`  | `/swarm/status` | Status of every node + auditor |
+| `POST` | `/swarm/force-cycle` | Force synchronous audit on all nodes |
+| `GET`  | `/swarm/consensus` | Per-pipeline consensus hash votes + quorum |
+| `GET`  | `/swarm/node/<id>` | Single node detailed status |
+| `GET`  | `/swarm/stats` | Aggregate cycles/heals/errors |
+| `GET`  | `/swarm/immortality/verify` | Immortality DAG + ledger chain verify |
+| `POST` | `/swarm/immortality/start` | Start swarm in immortality mode |
+| `POST` | `/swarm/immortality/stop` | Stop immortality swarm |
+| `GET`  | `/swarm/immortality/status` | Node running states |
+| `POST` | `/swarm/immortality/force-cycle` | Force immortality cycle |
+
+---
+
+### Deployment: Multi-Node
+
+```bash
+# Node 1 (primary)
+KISWARM_NODE_ID=node-1 uvicorn sentinel_api:app --port 11436
+
+# Node 2 (peer)
+KISWARM_NODE_ID=node-2 uvicorn sentinel_api:app --port 11437
+
+# Node 3 (peer)
+KISWARM_NODE_ID=node-3 uvicorn sentinel_api:app --port 11438
+```
+
+All nodes share `sentinel_data/` (NFS, shared volume, or replicated storage).  
+The consensus mechanism ensures any node disagreement triggers self-healing within one audit cycle.
+
+```bash
+# Start the swarm
+curl -X POST http://localhost:11436/swarm/start
+
+# Check consensus
+curl http://localhost:11436/swarm/consensus
+
+# Force a full audit cycle
+curl -X POST http://localhost:11436/swarm/force-cycle
+
+# Verify immortality chain
+curl http://localhost:11436/swarm/immortality/verify
+
+# Get audit log (last 50 entries)
+curl "http://localhost:11436/auditor/logs?limit=50"
+
+# Verify ledger integrity
+curl http://localhost:11436/auditor/ledger-integrity
+```
+
+---
+
+### Test Coverage v4.4 (92 tests)
+
+| Test Class | Tests | Coverage Area |
+|------------|-------|---------------|
+| `TestAuditLedger` | 10 | SHA-256 chain, integrity, tail, resume |
+| `TestDataModels` | 7 | Node/Edge/DAG serialisation roundtrips |
+| `TestPFDSIL` | 9 | IEC 61508 PFD formulas, SIL bands |
+| `TestDAGRepair` | 8 | Dangling edges, cycles, SIL patch |
+| `TestPipelineStep` | 7 | All 6 pipelines, SIL/PFD/ledger keys |
+| `TestAuditCycle` | 6 | Full sweep, timestamps, ledger writes |
+| `TestPopulateDummyData` | 6 | Test data correctness per pipeline |
+| `TestSwarmAuditorNode` | 8 | Lifecycle, force cycle, peer comparison |
+| `TestPermanentAuditor` | 4 | Start/stop/status |
+| `TestSwarmCoordinator` | 12 | N-node, force cycle, consensus, stats |
+| `TestConsensusHelpers` | 10 | Majority vote, hash stability, diffs |
+| `TestValidateDAGConsistency` | 5 | Cross-pipeline validation |
+
+---
+
+### v4.4 vs v4.3 Comparison
+
+| Capability | v4.3 | v4.4 |
+|------------|------|------|
+| ICS Security scanning | ✅ | ✅ |
+| OT Network Monitor | ✅ | ✅ |
+| Self-healing DAG | ❌ | ✅ |
+| Multi-node swarm consensus | ❌ | ✅ |
+| Permanent background auditor | ❌ | ✅ |
+| 6-pipeline sweep automation | ❌ | ✅ |
+| IEC 61508 PFD recalculation | Partial | ✅ Full |
+| SHA-256 immortal audit ledger | Partial | ✅ Full chain |
+| Cycle detection + auto-repair | ❌ | ✅ |
+| Dangling edge auto-removal | ❌ | ✅ |
+| Consensus quorum view | ❌ | ✅ |
+| Tests | 948 | 1040 |
+| Endpoints | 148 | 172 |

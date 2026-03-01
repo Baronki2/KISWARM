@@ -34,3 +34,4 @@ desktop.ini
 
 # Governance config (user edits their own)
 governance_config.json
+sentinel_data/

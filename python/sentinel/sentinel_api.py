@@ -2835,3 +2835,225 @@ if __name__ == "__main__":
     logger.info("║  Port: 11436  |  Modules: 30  |  Endpoints: 148           ║")
     logger.info("╚══════════════════════════════════════════════════════════════╝")
     app.run(host="127.0.0.1", port=11436, debug=False, threaded=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.4 — SELF-HEALING SWARM AUDITOR (Modules 31-32)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+from .swarm_auditor import (
+    populate_dummy_data as _populate_dummy,
+    run_audit_cycle as _run_audit_cycle,
+    log_audit as _log_audit,
+    PIPELINES as _PIPELINES,
+)
+from .swarm_dag import SwarmCoordinator as _SwarmCoordinator
+
+# Initialise shared state
+_populate_dummy()
+_swarm = _SwarmCoordinator(n_nodes=3, interval_seconds=30)
+
+
+# ── Module 31: Auditor Core ────────────────────────────────────────────────
+
+@app.route("/auditor/run", methods=["POST"])
+def auditor_run():
+    """Trigger one full audit cycle across all 6 pipelines."""
+    result = _run_audit_cycle(source="api")
+    return jsonify({
+        "cycle_timestamp": result["cycle_timestamp"],
+        "pipelines":       list(result["pipelines"].keys()),
+        "issues_found":    result["issues_found"],
+        "source":          result["source"],
+    })
+
+
+@app.route("/auditor/logs", methods=["GET"])
+def auditor_logs():
+    """Return last N audit log entries (append-only ledger)."""
+    from .swarm_auditor import _ledger
+    limit = int(request.args.get("limit", 100))
+    return jsonify({"entries": _ledger.tail(limit), "total": _ledger.entry_count()})
+
+
+@app.route("/auditor/ledger-integrity", methods=["GET"])
+def auditor_ledger_integrity():
+    """Verify SHA-256 chain integrity of the audit ledger."""
+    from .swarm_auditor import _ledger
+    intact, checked = _ledger.verify_integrity()
+    return jsonify({"intact": intact, "entries_checked": checked})
+
+
+@app.route("/auditor/pipeline/<pipeline>", methods=["GET"])
+def auditor_pipeline_status(pipeline):
+    """Load and return current DAG state for one pipeline."""
+    from .swarm_auditor import load_pipeline_dag
+    if pipeline not in _PIPELINES:
+        return jsonify({"error": f"Unknown pipeline. Valid: {_PIPELINES}"}), 400
+    dag = load_pipeline_dag(pipeline)
+    return jsonify(dag.to_dict())
+
+
+@app.route("/auditor/pipeline/<pipeline>/reset", methods=["POST"])
+def auditor_pipeline_reset(pipeline):
+    """Reset a pipeline DAG to empty and re-populate with dummy data."""
+    from .swarm_auditor import PipelineDAG, save_pipeline_dag, populate_dummy_data
+    if pipeline not in _PIPELINES:
+        return jsonify({"error": f"Unknown pipeline. Valid: {_PIPELINES}"}), 400
+    save_pipeline_dag(PipelineDAG(pipeline=pipeline))
+    populate_dummy_data()
+    _log_audit(f"Pipeline '{pipeline}' reset via API", "INFO", "api")
+    return jsonify({"status": f"{pipeline} reset and dummy data repopulated"})
+
+
+@app.route("/auditor/pipeline/<pipeline>/add-node", methods=["POST"])
+def auditor_add_node(pipeline):
+    """Add a node to a pipeline DAG."""
+    from .swarm_auditor import load_pipeline_dag, save_pipeline_dag, DAGNode
+    import uuid as _uuid
+    if pipeline not in _PIPELINES:
+        return jsonify({"error": f"Unknown pipeline"}), 400
+    d = request.get_json() or {}
+    node = DAGNode(id=str(_uuid.uuid4()), node_type=d.get("node_type", "generic"),
+                   data=d.get("data", {}))
+    dag = load_pipeline_dag(pipeline)
+    dag.nodes.append(node)
+    save_pipeline_dag(dag)
+    _log_audit(f"Node {node.id[:8]} added to '{pipeline}'", "INFO", "api")
+    return jsonify(node.to_dict()), 201
+
+
+@app.route("/auditor/pipeline/<pipeline>/add-edge", methods=["POST"])
+def auditor_add_edge(pipeline):
+    """Add an edge to a pipeline DAG."""
+    from .swarm_auditor import load_pipeline_dag, save_pipeline_dag, DAGEdge
+    if pipeline not in _PIPELINES:
+        return jsonify({"error": f"Unknown pipeline"}), 400
+    d = request.get_json() or {}
+    from_n = d.get("from_node")
+    to_n   = d.get("to_node")
+    if not from_n or not to_n:
+        return jsonify({"error": "from_node and to_node required"}), 400
+    edge = DAGEdge(from_node=from_n, to_node=to_n, edge_type=d.get("edge_type", "derived_from"))
+    dag = load_pipeline_dag(pipeline)
+    dag.edges.append(edge)
+    save_pipeline_dag(dag)
+    _log_audit(f"Edge {from_n[:8]}→{to_n[:8]} added to '{pipeline}'", "INFO", "api")
+    return jsonify(edge.to_dict()), 201
+
+
+@app.route("/auditor/populate-dummy", methods=["POST"])
+def auditor_populate_dummy():
+    """Re-populate all pipelines with representative dummy data."""
+    from .swarm_auditor import populate_dummy_data
+    populate_dummy_data()
+    return jsonify({"status": "dummy data populated", "pipelines": _PIPELINES})
+
+
+@app.route("/auditor/stats", methods=["GET"])
+def auditor_stats():
+    """Aggregated auditor statistics."""
+    from .swarm_auditor import _ledger
+    intact, checked = _ledger.verify_integrity()
+    return jsonify({
+        "pipelines":        _PIPELINES,
+        "pipeline_count":   len(_PIPELINES),
+        "ledger_entries":   _ledger.entry_count(),
+        "ledger_intact":    intact,
+        "ledger_checked":   checked,
+    })
+
+
+# ── Module 32: Swarm DAG Coordinator ──────────────────────────────────────
+
+@app.route("/swarm/start", methods=["POST"])
+def swarm_start():
+    """Start all swarm nodes + permanent auditor."""
+    result = _swarm.start()
+    return jsonify(result)
+
+
+@app.route("/swarm/stop", methods=["POST"])
+def swarm_stop():
+    """Stop all swarm nodes + permanent auditor."""
+    result = _swarm.stop()
+    return jsonify(result)
+
+
+@app.route("/swarm/status", methods=["GET"])
+def swarm_status():
+    """Status of every swarm node and the permanent auditor."""
+    return jsonify(_swarm.status())
+
+
+@app.route("/swarm/force-cycle", methods=["POST"])
+def swarm_force_cycle():
+    """Synchronously force one full audit cycle on all nodes."""
+    return jsonify(_swarm.force_cycle())
+
+
+@app.route("/swarm/consensus", methods=["GET"])
+def swarm_consensus():
+    """Current per-pipeline consensus view (hash votes + quorum)."""
+    return jsonify(_swarm.consensus_view())
+
+
+@app.route("/swarm/node/<node_id>", methods=["GET"])
+def swarm_node_status(node_id):
+    """Detailed status for a single swarm node."""
+    st = _swarm.node_status(node_id)
+    if st is None:
+        return jsonify({"error": "Node not found"}), 404
+    return jsonify(st)
+
+
+@app.route("/swarm/stats", methods=["GET"])
+def swarm_aggregate_stats():
+    """Aggregate stats across all nodes (cycles, heals, errors)."""
+    return jsonify(_swarm.aggregate_stats())
+
+
+@app.route("/swarm/immortality/verify", methods=["GET"])
+def swarm_immortality_verify():
+    """Verify the immortality pipeline DAG + ledger chain integrity."""
+    from .swarm_auditor import load_pipeline_dag, _ledger
+    dag   = load_pipeline_dag("immortality")
+    intact, checked = _ledger.verify_integrity()
+    return jsonify({
+        "dag_nodes":      len(dag.nodes),
+        "dag_edges":      len(dag.edges),
+        "ledger_intact":  intact,
+        "ledger_entries": checked,
+        "immortal":       intact and len(dag.nodes) > 0,
+    })
+
+
+@app.route("/swarm/immortality/start", methods=["POST"])
+def immortality_start():
+    result = _swarm.start()
+    return jsonify({**result, "mode": "immortality"})
+
+
+@app.route("/swarm/immortality/stop", methods=["POST"])
+def immortality_stop():
+    result = _swarm.stop()
+    return jsonify({**result, "mode": "immortality"})
+
+
+@app.route("/swarm/immortality/status", methods=["GET"])
+def immortality_status():
+    s = _swarm.status()
+    return jsonify({n["node_id"]: n["running"] for n in s["nodes"]})
+
+
+@app.route("/swarm/immortality/force-cycle", methods=["POST"])
+def immortality_force_cycle():
+    return jsonify(_swarm.force_cycle())
+
+
+if __name__ == "__main__":
+    logger.info("╔══════════════════════════════════════════════════════════════╗")
+    logger.info("║  KISWARM v4.4 — Self-Healing Swarm Auditor · 6 Pipelines  ║")
+    logger.info("║  Port: 11436  |  Modules: 32  |  Endpoints: 172           ║")
+    logger.info("╚══════════════════════════════════════════════════════════════╝")
+    app.run(host="127.0.0.1", port=11436, debug=False, threaded=True)
