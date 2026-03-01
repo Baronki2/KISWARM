@@ -3264,9 +3264,263 @@ def evolution_vault_all_events():
     return jsonify({"events": ev.get_all_events(limit=limit)})
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.6 — INSTALLER AGENT + ADVISOR API (Modules 34–37)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+from .system_scout    import SystemScout    as _SystemScout
+from .repo_intelligence import RepoIntelligence as _RepoIntel
+from .installer_agent import InstallerAgent as _InstallerAgent, InstallMode as _InstallMode
+from .advisor_api     import KISWARMAdvisor as _KISWARMAdvisor
+
+# Shared singletons
+_advisor = _KISWARMAdvisor()
+_intel   = _RepoIntel()
+
+
+# ── Module 34: System Scout ───────────────────────────────────────────────
+
+@app.route("/installer/scan", methods=["GET"])
+def installer_scan():
+    """Full system scan — hardware, OS, ports, deps, network, readiness."""
+    scout  = _SystemScout()
+    report = scout.full_scan()
+    return jsonify(report.to_dict())
+
+
+@app.route("/installer/scan/summary", methods=["GET"])
+def installer_scan_summary():
+    """Human-readable scan summary text."""
+    scout  = _SystemScout()
+    report = scout.full_scan()
+    return jsonify({
+        "summary":    report.summary_text(),
+        "readiness":  report.install_readiness,
+        "issues":     report.readiness_issues,
+        "warnings":   report.readiness_warnings,
+        "recommended_model": report.hardware.model_recommendation(),
+    })
+
+
+@app.route("/installer/scan/hardware", methods=["GET"])
+def installer_scan_hardware():
+    """Hardware profile only (fast)."""
+    scout = _SystemScout()
+    hw    = scout.scan_hardware()
+    return jsonify({
+        "cpu_cores":     hw.cpu_cores,
+        "cpu_model":     hw.cpu_model,
+        "ram_total_gb":  round(hw.ram_total_gb, 2),
+        "ram_free_gb":   round(hw.ram_free_gb, 2),
+        "disk_free_gb":  round(hw.disk_free_gb, 2),
+        "gpu_info":      hw.gpu_info,
+        "recommended_model": hw.model_recommendation(),
+        "sufficient":    hw.sufficient_for_kiswarm()[0],
+    })
+
+
+@app.route("/installer/scan/ports", methods=["GET"])
+def installer_scan_ports():
+    """KISWARM port availability scan."""
+    scout = _SystemScout()
+    ports = scout.scan_ports()
+    return jsonify({
+        "ports": [{"port": p.port, "name": p.name, "free": p.free,
+                   "pid": p.pid, "process": p.process_name} for p in ports],
+        "all_free": all(p.free for p in ports),
+    })
+
+
+@app.route("/installer/scan/network", methods=["GET"])
+def installer_scan_network():
+    """Network reachability check (GitHub, Ollama, PyPI)."""
+    scout   = _SystemScout()
+    network = scout.scan_network()
+    return jsonify({
+        "targets":      [{"label": n.label, "reachable": n.reachable,
+                          "latency_ms": n.latency_ms} for n in network],
+        "all_reachable": all(n.reachable for n in network),
+    })
+
+
+# ── Module 35: Repo Intelligence ──────────────────────────────────────────
+
+@app.route("/repo/modules", methods=["GET"])
+def repo_modules():
+    """All KISWARM modules with descriptions."""
+    return jsonify({
+        "modules": _intel.get_module_list(),
+        "total":   len(_intel.get_module_list()),
+    })
+
+
+@app.route("/repo/modules/<name>", methods=["GET"])
+def repo_module_detail(name):
+    """Detail for a specific module."""
+    m = _intel.get_module_by_name(name)
+    if m is None:
+        return jsonify({"error": f"Module '{name}' not found"}), 404
+    return jsonify(m)
+
+
+@app.route("/repo/versions", methods=["GET"])
+def repo_versions():
+    """KISWARM version history."""
+    return jsonify({
+        "versions":         _intel.get_version_history(),
+        "current_version":  _intel.get_current_version(),
+    })
+
+
+@app.route("/repo/ask", methods=["POST"])
+def repo_ask():
+    """Ask a question about the KISWARM repository."""
+    d = request.get_json() or {}
+    question = d.get("question", "")
+    if not question:
+        return jsonify({"error": "question required"}), 400
+    return jsonify(_intel.answer(question))
+
+
+@app.route("/repo/install-plan", methods=["POST"])
+def repo_install_plan():
+    """Generate install plan from a ScoutReport dict."""
+    scout_data = request.get_json() or {}
+    if not scout_data:
+        # Auto-scan if no data provided
+        scout  = _SystemScout()
+        scout_data = scout.full_scan().to_dict()
+    plan = _intel.generate_install_plan(scout_data)
+    return jsonify(plan)
+
+
+@app.route("/repo/readme", methods=["GET"])
+def repo_readme():
+    """Fetch README from GitHub (cached 1h)."""
+    readme = _intel.fetch_readme()
+    if readme:
+        return jsonify({"content": readme, "length": len(readme), "source": "github"})
+    return jsonify({"error": "Could not fetch README", "fallback": "https://github.com/Baronki2/KISWARM"}), 503
+
+
+# ── Module 36: Installer Agent ────────────────────────────────────────────
+
+@app.route("/installer/run", methods=["POST"])
+def installer_run():
+    """
+    Run autonomous installation.
+    Body: {"mode": "auto" | "dry_run", "install_dir": "/optional/path"}
+    """
+    d           = request.get_json() or {}
+    mode_str    = d.get("mode", "dry_run")    # default safe: dry_run
+    install_dir = d.get("install_dir")
+
+    try:
+        mode   = _InstallMode(mode_str)
+    except ValueError:
+        return jsonify({"error": f"Invalid mode '{mode_str}'. Use: auto, dry_run"}), 400
+
+    agent  = _InstallerAgent(mode=mode, install_dir=install_dir)
+    report = agent.run()
+    return jsonify(report.to_dict()), 200 if report.success() else 500
+
+
+@app.route("/installer/dry-run", methods=["GET", "POST"])
+def installer_dry_run():
+    """Safe dry-run: scan + plan + simulate steps without executing."""
+    install_dir = (request.get_json() or {}).get("install_dir")
+    agent  = _InstallerAgent(mode=_InstallMode.DRY_RUN, install_dir=install_dir)
+    report = agent.run()
+    return jsonify(report.to_dict())
+
+
+@app.route("/installer/scan-only", methods=["GET"])
+def installer_scan_only():
+    """Just run the scout and return the report (alias for /installer/scan)."""
+    agent = _InstallerAgent()
+    return jsonify(agent.scan_only())
+
+
+# ── Module 37: Advisor API ────────────────────────────────────────────────
+
+@app.route("/advisor/consult", methods=["POST"])
+def advisor_consult():
+    """
+    AI-to-AI consultation endpoint.
+    Body: {"question": "...", "caller_id": "...", "caller_type": "...", "context": {...}}
+    """
+    d           = request.get_json() or {}
+    question    = d.get("question", "")
+    caller_id   = d.get("caller_id", "anonymous")
+    caller_type = d.get("caller_type", "unknown")
+    context     = d.get("context", {})
+
+    if not question:
+        return jsonify({"error": "question required"}), 400
+
+    return jsonify(_advisor.consult(
+        question=question,
+        caller_id=caller_id,
+        caller_type=caller_type,
+        context=context,
+    ))
+
+
+@app.route("/advisor/scan", methods=["GET"])
+def advisor_scan():
+    """Scan system and return installation advice. Primary AI-to-AI endpoint."""
+    caller_id = request.args.get("caller_id", "anonymous")
+    return jsonify(_advisor.scan_and_advise(caller_id=caller_id))
+
+
+@app.route("/advisor/handshake", methods=["POST"])
+def advisor_handshake():
+    """Peer handshake — establish relationship with another AI system."""
+    d            = request.get_json() or {}
+    caller_id    = d.get("caller_id", "anonymous")
+    caller_type  = d.get("caller_type", "unknown")
+    capabilities = d.get("capabilities", [])
+    return jsonify(_advisor.peer_handshake(caller_id, caller_type, capabilities)), 201
+
+
+@app.route("/advisor/sessions", methods=["GET"])
+def advisor_sessions():
+    """List all active advisory sessions."""
+    return jsonify({
+        "sessions": _advisor.list_sessions(),
+        "count":    len(_advisor.list_sessions()),
+    })
+
+
+@app.route("/advisor/stats", methods=["GET"])
+def advisor_stats():
+    """Advisor statistics and capabilities."""
+    return jsonify(_advisor.stats())
+
+
+@app.route("/advisor/modules", methods=["GET"])
+def advisor_modules():
+    """List all KISWARM modules (via Repo Intelligence)."""
+    return jsonify({
+        "modules":  _intel.get_module_list(),
+        "version":  _intel.get_current_version(),
+        "total":    len(_intel.get_module_list()),
+    })
+
+
+@app.route("/advisor/ask", methods=["POST"])
+def advisor_ask():
+    """Alias for /repo/ask — natural language KISWARM questions."""
+    d = request.get_json() or {}
+    q = d.get("question", "")
+    if not q:
+        return jsonify({"error": "question required"}), 400
+    return jsonify(_intel.answer(q))
+
+
 if __name__ == "__main__":
     logger.info("╔══════════════════════════════════════════════════════════════╗")
-    logger.info("║  KISWARM v4.5 — Swarm Immortality Kernel · 35 Modules     ║")
-    logger.info("║  Port: 11436  |  Modules: 35  |  Endpoints: 197           ║")
+    logger.info("║  KISWARM v4.6 — Installer Agent & Advisor · 41 Modules    ║")
+    logger.info("║  Port: 11436  |  Modules: 41  |  Endpoints: 229           ║")
     logger.info("╚══════════════════════════════════════════════════════════════╝")
     app.run(host="127.0.0.1", port=11436, debug=False, threaded=True)
