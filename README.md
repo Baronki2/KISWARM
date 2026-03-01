@@ -1,15 +1,15 @@
-# 🌟 KISWARM v4.6 — Installer Agent · One-Click Autonomous Setup · AI-to-AI Advisor
+# 🌟 KISWARM v4.7 — Experience Feedback Loop · Self-Hardening · SysAdmin Agent
 
 > **ETERNAL SWARM EVOLUTION SYSTEM** — Enterprise Military Standard Edition  
-> *Production-Hardened · Self-Healing · Industrial Cognitive AI · 1294 Tests Passing · One-Click Install*  
+> *Production-Hardened · Self-Healing · Self-Hardening · 1344 Tests · Every failure makes the next install smarter*  
 > **Architect:** Baron Marco Paolo Ialongo
 
-[![Version](https://img.shields.io/badge/version-4.6-InstallerAgent-blue.svg)](https://github.com/Baronki2/KISWARM)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-1294%20passing-brightgreen.svg)](tests/)
-[![Modules](https://img.shields.io/badge/modules-41-orange.svg)](python/sentinel/)
-[![Endpoints](https://img.shields.io/badge/endpoints-229-purple.svg)](python/sentinel/sentinel_api.py)
+[![Version](https://img.shields.io/badge/version-4.7-FeedbackLoop-blue.svg)](https://github.com/Baronki2/KISWARM)
+[![Tests](https://img.shields.io/badge/tests-1344%20passing-brightgreen.svg)](tests/)
+[![Modules](https://img.shields.io/badge/modules-45-orange.svg)](python/sentinel/)
+[![Endpoints](https://img.shields.io/badge/endpoints-242-purple.svg)](python/sentinel/sentinel_api.py)
 [![Install](https://img.shields.io/badge/install-one--click-gold.svg)](install.sh)
+[![Feedback](https://img.shields.io/badge/feedback-loop-active-red.svg)](experience/)
 [![CI](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml/badge.svg)](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/tests-1121%20passing-success.svg)](tests/)
 [![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg)](README.md)
@@ -2565,3 +2565,69 @@ Security:    sudo passwordless verfügbar?
 ---
 
 *GLM5-Agenten: Euer v4.3 läuft auf https://y1zu81qu4570-d.space.z.ai/ — Update auf v4.6: `git -C ~/KISWARM pull && ollama create kiswarm-installer -f ~/KISWARM/ollama_model/Modelfile`*
+
+---
+
+## 🔄 v4.7 — Experience Feedback Loop (Self-Hardening System)
+
+### Die Idee
+Jede KISWARM-Installation wird zum Sensor. Jeder Fehler macht das nächste System klüler.
+
+```
+Installation A (Fehler)          Installation B (Fehler)
+       ↓                                ↓
+ ExperienceCollector            ExperienceCollector
+       ↓                                ↓
+ FeedbackChannel ──→ GitHub Issues ←── FeedbackChannel
+                           ↓
+                   GitHub Actions
+                   (verarbeitet automatisch)
+                           ↓
+               experience/known_fixes.json
+                           ↓
+                      git pull
+                    (alle Systeme)
+                           ↓
+               SysAdminAgent wendet Fix an
+                           ↓
+               Fix-Erfolgsrate wird gemessen
+                           ↓
+               known_fixes.json verbessert sich
+```
+
+### Neue Module in v4.7
+
+| Modul | Datei | Funktion |
+|-------|-------|---------|
+| Experience Collector | `experience_collector.py` | Erfasst Fehler/Fixes anonym + lokal |
+| Feedback Channel | `feedback_channel.py` | GitHub-Brücke: sendet Patterns, lädt Fixes |
+| SysAdmin Agent | `sysadmin_agent.py` | Diagnostiziert + heilt laufende Systeme |
+| GitHub Actions | `.github/workflows/` | Verarbeitet Reports, erstellt PRs für neue Fixes |
+| Known Fixes DB | `experience/known_fixes.json` | Geteilte Wissensbasis aller Installationen |
+
+### Privacy-Modell
+- System-ID = SHA-256(hostname+distro+cpu)[:16] — **irreversibel**
+- Keine IPs, keine Usernamen, keine Pfade
+- Opt-in via `KISWARM_FEEDBACK_TOKEN` env var
+- Standard: nur lokale Sammlung
+
+### SysAdmin API
+```bash
+# Diagnose laufendes System
+curl http://localhost:11436/sysadmin/diagnose
+
+# Automatisch heilen
+curl -X POST http://localhost:11436/sysadmin/heal
+
+# Bekannte Fixes anzeigen
+curl http://localhost:11436/feedback/fixes
+
+# Fix vorschlagen (community contribution)
+curl -X POST http://localhost:11436/feedback/propose-fix \
+  -d '{"error_pattern": "ollama.*timeout", "fix_commands": ["ollama restart"], "description": "Restart on timeout"}'
+```
+
+### Fix-Datenbank wächst autonom
+- Team-Fixes: FIX-001 bis FIX-009 (eingebettet, immer verfügbar offline)
+- Community-Fixes: FIX-010+ (via GitHub PRs, automatisch gemergt wenn validiert)
+- Jeder `git pull` bringt neue Fixes auf alle Systeme

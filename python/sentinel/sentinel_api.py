@@ -3518,9 +3518,126 @@ def advisor_ask():
     return jsonify(_intel.answer(q))
 
 
+# ── v4.7: Experience Feedback Loop ──────────────────────────────────────────
+
+def _get_collector():
+    from .experience_collector import get_collector
+    return get_collector()
+
+def _get_channel():
+    from .feedback_channel import FeedbackChannel
+    return FeedbackChannel()
+
+def _get_sysadmin():
+    from .sysadmin_agent import SysAdminAgent
+    return SysAdminAgent(auto_report=False)
+
+
+@app.route("/experience/capture", methods=["POST"])
+def experience_capture():
+    """Capture an experience event (error, warning, fix result)."""
+    d = request.get_json() or {}
+    collector = _get_collector()
+    etype = d.get("type", "warning")
+    if etype == "error":
+        class _FakeExc(Exception): pass
+        e = _FakeExc(d.get("message", ""))
+        ev = collector.capture_error(d.get("module", "api"), e)
+    elif etype in ("fix_succeeded", "fix_failed"):
+        ev = collector.capture_fix(
+            d.get("module", "api"), d.get("fix_id", "unknown"),
+            etype == "fix_succeeded", d.get("context")
+        )
+    else:
+        ev = collector.capture_warning(d.get("module", "api"),
+                                       d.get("message", ""), d.get("context"))
+    return jsonify({"status": "captured", "event_id": ev.event_id,
+                    "experience_type": ev.experience_type}), 201
+
+
+@app.route("/experience/stats", methods=["GET"])
+def experience_stats():
+    return jsonify(_get_collector().stats())
+
+
+@app.route("/experience/top-errors", methods=["GET"])
+def experience_top_errors():
+    n = int(request.args.get("n", 10))
+    return jsonify({"top_errors": _get_collector().top_errors(n)})
+
+
+@app.route("/experience/fix-rates", methods=["GET"])
+def experience_fix_rates():
+    return jsonify(_get_collector().fix_success_rate())
+
+
+@app.route("/feedback/fixes", methods=["GET"])
+def feedback_known_fixes():
+    fixes = _get_channel().load_known_fixes()
+    return jsonify({
+        "total": len(fixes),
+        "fixes": [f.to_dict() for f in fixes],
+    })
+
+
+@app.route("/feedback/stats", methods=["GET"])
+def feedback_stats():
+    return jsonify(_get_channel().stats())
+
+
+@app.route("/feedback/report", methods=["POST"])
+def feedback_report():
+    """Send anonymized experience to GitHub (requires KISWARM_FEEDBACK_TOKEN)."""
+    collector = _get_collector()
+    channel   = _get_channel()
+    events    = collector.load_all_events()
+    result    = channel.report_experience(events, collector._system_id)
+    return jsonify(result)
+
+
+@app.route("/feedback/propose-fix", methods=["POST"])
+def feedback_propose_fix():
+    d = request.get_json() or {}
+    channel = _get_channel()
+    result  = channel.propose_fix(
+        error_pattern=d.get("error_pattern", ""),
+        fix_commands=d.get("fix_commands", []),
+        description=d.get("description", ""),
+        module=d.get("module"),
+        os_family=d.get("os_family"),
+    )
+    return jsonify(result)
+
+
+@app.route("/sysadmin/diagnose", methods=["GET"])
+def sysadmin_diagnose():
+    agent    = _get_sysadmin()
+    findings = agent.diagnose()
+    return jsonify({
+        "state":    agent.state.value,
+        "findings": [{"id": f.finding_id, "severity": f.severity,
+                      "title": f.title, "can_auto_heal": f.can_auto_heal,
+                      "fix_id": f.recommended_fix_id}
+                     for f in findings],
+    })
+
+
+@app.route("/sysadmin/heal", methods=["POST"])
+def sysadmin_heal():
+    agent           = _get_sysadmin()
+    report          = agent.run_full_cycle()
+    return jsonify(report.to_dict())
+
+
+@app.route("/sysadmin/quick-heal", methods=["POST"])
+def sysadmin_quick_heal():
+    from .sysadmin_agent import quick_heal
+    return jsonify(quick_heal())
+
+
 if __name__ == "__main__":
     logger.info("╔══════════════════════════════════════════════════════════════╗")
-    logger.info("║  KISWARM v4.6 — Installer Agent & Advisor · 41 Modules    ║")
-    logger.info("║  Port: 11436  |  Modules: 41  |  Endpoints: 229           ║")
+    logger.info("║  KISWARM v4.7 — Feedback Loop · SysAdmin · 45 Modules     ║")
+    logger.info("║  Port: 11436  |  Modules: 45  |  Endpoints: 242           ║")
     logger.info("╚══════════════════════════════════════════════════════════════╝")
     app.run(host="127.0.0.1", port=11436, debug=False, threaded=True)
