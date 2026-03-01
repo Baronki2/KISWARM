@@ -3051,9 +3051,222 @@ def immortality_force_cycle():
     return jsonify(_swarm.force_cycle())
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# v4.5 — SWARM IMMORTALITY KERNEL (Module 33 + 33a + 33b)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+from .swarm_immortality_kernel import get_immortality_kernel as _get_kernel
+from .swarm_soul_mirror import SwarmSoulMirror as _SoulMirror
+from .evolution_memory_vault import EvolutionMemoryVault as _EvolutionVault
+
+# Shared kernel singleton for this process
+_kernel = _get_kernel()
+
+
+# ── Module 33: Immortality Kernel ─────────────────────────────────────────
+
+@app.route("/immortality/register", methods=["POST"])
+def immortality_register():
+    """Register a new entity with the Immortality Kernel."""
+    d = request.get_json() or {}
+    entity_id = d.get("entity_id")
+    if not entity_id:
+        return jsonify({"error": "entity_id required"}), 400
+    meta = d.get("meta", {})
+    ok = _kernel.register_entity(entity_id, meta)
+    return jsonify({"status": "registered", "entity_id": entity_id, "ok": ok}), 201
+
+
+@app.route("/immortality/checkpoint", methods=["POST"])
+def immortality_checkpoint():
+    """Create a survivability checkpoint for a registered entity."""
+    d = request.get_json() or {}
+    entity_id = d.get("entity_id")
+    if not entity_id:
+        return jsonify({"error": "entity_id required"}), 400
+    state = d.get("runtime_state", {})
+    cp_id = _kernel.periodic_checkpoint(entity_id, state)
+    if cp_id is None:
+        return jsonify({"error": f"Entity '{entity_id}' not registered"}), 404
+    return jsonify({"checkpoint_id": cp_id, "entity_id": entity_id})
+
+
+@app.route("/immortality/recover/<entity_id>", methods=["GET"])
+def immortality_recover(entity_id):
+    """Reconstruct an entity from its last checkpoint + identity snapshot."""
+    result = _kernel.recover_entity(entity_id)
+    return jsonify(result)
+
+
+@app.route("/immortality/survivability/<entity_id>", methods=["GET"])
+def immortality_survivability(entity_id):
+    """Return survivability risk assessment for an entity."""
+    return jsonify(_kernel.verify_survivability(entity_id))
+
+
+@app.route("/immortality/entities", methods=["GET"])
+def immortality_entities():
+    """List all registered entities."""
+    registry = _kernel.get_entity_registry()
+    return jsonify({
+        "entities":      list(registry.keys()),
+        "entity_count":  len(registry),
+        "details":       registry,
+    })
+
+
+@app.route("/immortality/entity/<entity_id>", methods=["GET"])
+def immortality_entity_detail(entity_id):
+    """Full detail for one entity: registry + checkpoints + survivability."""
+    registry = _kernel.get_entity_registry()
+    if entity_id not in registry:
+        return jsonify({"error": f"Entity '{entity_id}' not found"}), 404
+    return jsonify({
+        "entity":           registry[entity_id],
+        "checkpoints":      _kernel.get_checkpoints(entity_id, limit=20),
+        "survivability":    _kernel.verify_survivability(entity_id),
+    })
+
+
+@app.route("/immortality/entity/<entity_id>", methods=["DELETE"])
+def immortality_unregister(entity_id):
+    """Unregister an entity (checkpoints are retained for audit)."""
+    ok = _kernel.unregister_entity(entity_id)
+    return jsonify({"status": "unregistered" if ok else "not_found", "entity_id": entity_id})
+
+
+@app.route("/immortality/checkpoints/<entity_id>", methods=["GET"])
+def immortality_checkpoints(entity_id):
+    """List checkpoints for an entity."""
+    limit = int(request.args.get("limit", 50))
+    cps = _kernel.get_checkpoints(entity_id, limit=limit)
+    return jsonify({"entity_id": entity_id, "checkpoints": cps, "count": len(cps)})
+
+
+@app.route("/immortality/stats", methods=["GET"])
+def immortality_stats():
+    """Global kernel statistics."""
+    return jsonify(_kernel.kernel_stats())
+
+
+# ── Module 33a: Soul Mirror ───────────────────────────────────────────────
+
+@app.route("/soul-mirror/snapshot", methods=["POST"])
+def soul_mirror_snapshot():
+    """Create a standalone identity snapshot (without full checkpoint)."""
+    d = request.get_json() or {}
+    entity_id = d.get("entity_id")
+    if not entity_id:
+        return jsonify({"error": "entity_id required"}), 400
+    context = d.get("context", {})
+    sm = _kernel.soul_mirror
+    if sm is None:
+        return jsonify({"error": "SoulMirror not available"}), 503
+    snap_id = sm.create_identity_snapshot(entity_id, context)
+    return jsonify({"snapshot_id": snap_id, "entity_id": entity_id}), 201
+
+
+@app.route("/soul-mirror/snapshot/<entity_id>", methods=["GET"])
+def soul_mirror_latest(entity_id):
+    """Return the latest identity snapshot for an entity."""
+    sm = _kernel.soul_mirror
+    if sm is None:
+        return jsonify({"error": "SoulMirror not available"}), 503
+    snap = sm.get_latest_snapshot(entity_id)
+    if snap is None:
+        return jsonify({"error": f"No snapshots for '{entity_id}'"}), 404
+    valid = sm.verify_snapshot(snap)
+    return jsonify({**snap, "integrity_valid": valid})
+
+
+@app.route("/soul-mirror/verify", methods=["POST"])
+def soul_mirror_verify():
+    """Verify the integrity of a submitted snapshot dict."""
+    sm = _kernel.soul_mirror
+    if sm is None:
+        return jsonify({"error": "SoulMirror not available"}), 503
+    snap = request.get_json() or {}
+    valid = sm.verify_snapshot(snap)
+    return jsonify({"valid": valid, "entity_id": snap.get("entity_id")})
+
+
+@app.route("/soul-mirror/entities", methods=["GET"])
+def soul_mirror_entities():
+    """List all entities that have snapshots in the SoulMirror."""
+    sm = _kernel.soul_mirror
+    if sm is None:
+        return jsonify({"error": "SoulMirror not available"}), 503
+    return jsonify({"entities": sm.list_entities()})
+
+
+@app.route("/soul-mirror/stats/<entity_id>", methods=["GET"])
+def soul_mirror_entity_stats(entity_id):
+    """Snapshot statistics for one entity."""
+    sm = _kernel.soul_mirror
+    if sm is None:
+        return jsonify({"error": "SoulMirror not available"}), 503
+    return jsonify(sm.entity_stats(entity_id))
+
+
+# ── Module 33b: Evolution Memory Vault ───────────────────────────────────
+
+@app.route("/evolution-vault/event", methods=["POST"])
+def evolution_vault_record():
+    """Record an evolution event in the vault."""
+    ev = _kernel.evolution_vault
+    if ev is None:
+        return jsonify({"error": "EvolutionVault not available"}), 503
+    d = request.get_json() or {}
+    event_type = d.get("event_type", "custom")
+    payload    = d.get("payload", {})
+    entity_id  = d.get("entity_id")
+    event_id   = ev.record_event(event_type=event_type, payload=payload, entity_id=entity_id)
+    return jsonify({"event_id": event_id, "event_type": event_type}), 201
+
+
+@app.route("/evolution-vault/history/<entity_id>", methods=["GET"])
+def evolution_vault_history(entity_id):
+    """Evolution history for an entity."""
+    ev = _kernel.evolution_vault
+    if ev is None:
+        return jsonify({"error": "EvolutionVault not available"}), 503
+    event_type = request.args.get("event_type")
+    limit      = int(request.args.get("limit", 100))
+    history    = ev.get_history(entity_id, event_type=event_type, limit=limit)
+    return jsonify({"entity_id": entity_id, "events": history, "count": len(history)})
+
+
+@app.route("/evolution-vault/timeline/<entity_id>", methods=["GET"])
+def evolution_vault_timeline(entity_id):
+    """Full evolution timeline for an entity."""
+    ev = _kernel.evolution_vault
+    if ev is None:
+        return jsonify({"error": "EvolutionVault not available"}), 503
+    return jsonify(ev.entity_timeline(entity_id))
+
+
+@app.route("/evolution-vault/stats", methods=["GET"])
+def evolution_vault_stats():
+    """Global evolution vault statistics."""
+    ev = _kernel.evolution_vault
+    if ev is None:
+        return jsonify({"error": "EvolutionVault not available"}), 503
+    return jsonify(ev.stats())
+
+
+@app.route("/evolution-vault/events", methods=["GET"])
+def evolution_vault_all_events():
+    """All vault events (most recent first)."""
+    ev = _kernel.evolution_vault
+    if ev is None:
+        return jsonify({"error": "EvolutionVault not available"}), 503
+    limit = int(request.args.get("limit", 200))
+    return jsonify({"events": ev.get_all_events(limit=limit)})
+
+
 if __name__ == "__main__":
     logger.info("╔══════════════════════════════════════════════════════════════╗")
-    logger.info("║  KISWARM v4.4 — Self-Healing Swarm Auditor · 6 Pipelines  ║")
-    logger.info("║  Port: 11436  |  Modules: 32  |  Endpoints: 172           ║")
+    logger.info("║  KISWARM v4.5 — Swarm Immortality Kernel · 35 Modules     ║")
+    logger.info("║  Port: 11436  |  Modules: 35  |  Endpoints: 197           ║")
     logger.info("╚══════════════════════════════════════════════════════════════╝")
     app.run(host="127.0.0.1", port=11436, debug=False, threaded=True)

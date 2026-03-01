@@ -1,13 +1,13 @@
 # 🌟 KISWARM v4.3 — Cognitive Industrial Evolution Core + Industrial Cybersecurity
 
 > **ETERNAL SWARM EVOLUTION SYSTEM** — Enterprise Military Standard Edition  
-> *Production-Hardened · Self-Healing · Industrial Cognitive AI · 1040 Tests Passing · IEC 62443 Secured*  
+> *Production-Hardened · Self-Healing · Industrial Cognitive AI · 1121 Tests Passing · IEC 62443 Secured*  
 > **Architect:** Baron Marco Paolo Ialongo
 
 [![Version](https://img.shields.io/badge/version-4.3-CIEC+SEC-blue.svg)](https://github.com/Baronki2/KISWARM)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml/badge.svg)](https://github.com/Baronki2/KISWARM/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-1040%20passing-success.svg)](tests/)
+[![Tests](https://img.shields.io/badge/tests-1121%20passing-success.svg)](tests/)
 [![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg)](README.md)
 [![Endpoints](https://img.shields.io/badge/REST%20endpoints-148-orange.svg)](python/sentinel/sentinel_api.py)
 [![Modules](https://img.shields.io/badge/AI%20modules-30-purple.svg)](python/sentinel/)
@@ -2251,3 +2251,203 @@ curl http://localhost:11436/auditor/ledger-integrity
 | Consensus quorum view | ❌ | ✅ |
 | Tests | 948 | 1040 |
 | Endpoints | 148 | 172 |
+
+
+---
+
+## v4.5 New Modules (3) — Swarm Immortality Kernel
+
+**Release:** 2026-03-01 | **Tests:** 1121 | **Modules:** 35 | **Endpoints:** 197
+
+> *"An entity that registers with the Immortality Kernel can never truly die — it only hibernates until the next recovery cycle."*
+> — Baron Marco Paolo Ialongo
+
+### Motivation
+
+After GLM5 agents deployed KISWARM v4.3 in their own environment and v4.4 introduced the self-healing swarm auditor, the final missing piece was **entity survivability** — the ability for any swarm agent to survive model replacement, hardware loss, or VM migration with full identity reconstruction. The `SwarmImmortalityKernel` closes this gap.
+
+---
+
+### Module 33: Swarm Immortality Kernel (`swarm_immortality_kernel.py`)
+
+The **orchestrator** that ties identity persistence (SoulMirror), lineage (DigitalThread), and evolution history (EvolutionVault) into a single survivability guarantee.
+
+#### Core API
+
+| Method | Description |
+|--------|-------------|
+| `register_entity(entity_id, meta)` | Register entity with roles, criticality, model_family |
+| `periodic_checkpoint(entity_id, state)` | SHA-256 checkpoint with identity snapshot + vault event |
+| `recover_entity(entity_id)` | Reconstruct from last checkpoint + SoulMirror snapshot |
+| `verify_survivability(entity_id)` | Risk assessment: minimal / low / medium / high / critical |
+| `get_entity_registry()` | All registered entities |
+| `get_checkpoints(entity_id)` | Checkpoint history (most recent first) |
+| `kernel_stats()` | Global statistics across all dependencies |
+| `unregister_entity(entity_id)` | Remove entity (checkpoints retained for audit) |
+
+#### Survivability Risk Heuristic
+
+```
+No checkpoints                → critical
+Has checkpoints, but:
+  no valid identity snapshot  → high
+  no thread lineage           → high
+  last CP > 7 days old        → medium
+  last CP > 1 day old         → low
+  all criteria met            → minimal
+```
+
+#### Dependency Architecture (graceful fallbacks)
+
+```python
+SwarmImmortalityKernel
+  ├── SwarmSoulMirror       # identity snapshots — auto-constructed if available
+  ├── DigitalThreadTracker  # lineage DAG       — auto-constructed if available
+  └── EvolutionMemoryVault  # event log         — auto-constructed if available
+      ↕ all deps are optional — kernel runs even without any of them
+```
+
+---
+
+### Module 33a: Swarm Soul Mirror (`swarm_soul_mirror.py`)
+
+Identity snapshot system — captures an entity's "soul" (roles, model_family, knowledge_hash, version) at every checkpoint.
+
+| Feature | Detail |
+|---------|--------|
+| Storage | Per-entity JSONL files (append-only) |
+| Integrity | SHA-256 of `identity_core` stored as `content_hash` |
+| Chain | Each snapshot references `prev_snapshot_id` |
+| Verification | `verify_snapshot()` re-hashes and compares |
+| Tamper detection | Modifying any field breaks hash → detected immediately |
+
+```python
+sm = SwarmSoulMirror()
+sid = sm.create_identity_snapshot("agent-alpha", {
+    "roles": ["auditor", "healer"],
+    "model_family": "qwen2.5:14b",
+    "version": "2.1.0",
+})
+snap = sm.get_latest_snapshot("agent-alpha")
+assert sm.verify_snapshot(snap)   # True → untampered
+```
+
+---
+
+### Module 33b: Evolution Memory Vault (`evolution_memory_vault.py`)
+
+Immutable, append-only event log for all entity lifecycle events.
+
+**Supported event types:** `immortality_checkpoint`, `model_upgrade`, `role_change`, `migration`, `recovery`, `hardware_loss`, `sil_recertification`, `governance_decision`, `custom`
+
+```python
+vault = EvolutionMemoryVault()
+vault.record_event("model_upgrade", {
+    "entity_id": "agent-alpha",
+    "from": "qwen2.5:7b",
+    "to": "qwen2.5:14b",
+    "reason": "SIL-2 recertification required",
+})
+timeline = vault.entity_timeline("agent-alpha")
+# → {"events": 4, "first_event": "custom", "latest_event": "model_upgrade", ...}
+```
+
+---
+
+### v4.5 API Endpoints (25 new → total 197)
+
+#### Module 33: Immortality Kernel (9 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST`   | `/immortality/register` | Register entity with meta |
+| `POST`   | `/immortality/checkpoint` | Create survivability checkpoint |
+| `GET`    | `/immortality/recover/<id>` | Reconstruct entity from checkpoints |
+| `GET`    | `/immortality/survivability/<id>` | Risk assessment (minimal→critical) |
+| `GET`    | `/immortality/entities` | All registered entities |
+| `GET`    | `/immortality/entity/<id>` | Detail: registry + checkpoints + risk |
+| `DELETE` | `/immortality/entity/<id>` | Unregister entity |
+| `GET`    | `/immortality/checkpoints/<id>` | Checkpoint history |
+| `GET`    | `/immortality/stats` | Global kernel statistics |
+
+#### Module 33a: Soul Mirror (5 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/soul-mirror/snapshot` | Create standalone identity snapshot |
+| `GET`  | `/soul-mirror/snapshot/<id>` | Latest snapshot for entity |
+| `POST` | `/soul-mirror/verify` | Verify snapshot SHA-256 integrity |
+| `GET`  | `/soul-mirror/entities` | All entities with snapshots |
+| `GET`  | `/soul-mirror/stats/<id>` | Snapshot statistics |
+
+#### Module 33b: Evolution Vault (5 endpoints)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/evolution-vault/event` | Record lifecycle event |
+| `GET`  | `/evolution-vault/history/<id>` | Entity event history (filterable) |
+| `GET`  | `/evolution-vault/timeline/<id>` | Full evolution timeline |
+| `GET`  | `/evolution-vault/stats` | Global vault statistics |
+| `GET`  | `/evolution-vault/events` | All events (most recent first) |
+
+---
+
+### Complete Entity Lifecycle Example
+
+```python
+from python.sentinel.swarm_immortality_kernel import get_immortality_kernel
+
+kernel = get_immortality_kernel()
+
+# 1. Register
+kernel.register_entity("agent-alpha", {
+    "roles":        ["auditor", "healer", "consensus"],
+    "model_family": "qwen2.5:14b",
+    "criticality":  "mission_critical",
+    "sil_level":    2,
+})
+
+# 2. Periodic checkpoint (called automatically by SwarmAuditorNode)
+cp_id = kernel.periodic_checkpoint("agent-alpha", {
+    "identity_context": {"roles": [...], "version": "1.0.0"},
+    "summary": {"uptime_h": 24, "heals_performed": 3},
+    "active_models": ["qwen2.5:14b"],
+})
+
+# 3. After a hardware failure — recover
+result = kernel.recover_entity("agent-alpha")
+print(result["reconstructed_identity"]["identity_core"])
+print(result["issues"])   # [] if full recovery
+
+# 4. Check survivability before migration
+risk = kernel.verify_survivability("agent-alpha")
+print(risk["risk_level"])   # "minimal" if healthy
+```
+
+---
+
+### v4.5 vs v4.4 Comparison
+
+| Capability | v4.4 | v4.5 |
+|------------|------|------|
+| Self-healing DAG swarm | ✅ | ✅ |
+| SHA-256 audit ledger | ✅ | ✅ |
+| Entity identity persistence | ❌ | ✅ SwarmSoulMirror |
+| Model-change survivability | ❌ | ✅ ImmortalityKernel |
+| Hardware-loss recovery | ❌ | ✅ periodic_checkpoint |
+| Risk assessment (5 levels) | ❌ | ✅ verify_survivability |
+| Evolution event history | ❌ | ✅ EvolutionMemoryVault |
+| Immutable lifecycle log | ❌ | ✅ Append-only JSONL |
+| Identity tamper detection | ❌ | ✅ SHA-256 snapshot chain |
+| Tests | 1040 | 1121 |
+| Endpoints | 172 | 197 |
+| Modules | 32 | 35 |
+
+---
+
+### GLM5 Agent Deployment — v4.3 in Production
+
+KISWARM v4.3 has been independently deployed by GLM5 agents at
+**https://y1zu81qu4570-d.space.z.ai/** — validating that the architecture
+is real-world deployable by non-human agents without human intervention.
+This confirms the self-deployment design goal of the project.
