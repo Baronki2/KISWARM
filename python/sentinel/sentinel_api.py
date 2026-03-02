@@ -3379,6 +3379,173 @@ def advisor_ask():
     return jsonify(_intel.answer(q))
 
 
+
+import os as _os
+
+# ── v4.9: Software Ark (offline resilience) ──────────────────────────────────
+
+_ark          = None
+_ark_manager  = None
+_ark_transfer = None
+
+def _get_ark():
+    global _ark, _ark_manager, _ark_transfer
+    if _ark is None:
+        try:
+            from .ark.software_ark import SoftwareArk
+            from .ark.ark_manager  import ArkManager
+            from .ark.ark_transfer import ArkTransfer
+            _ark          = SoftwareArk()
+            _ark_manager  = ArkManager(ark=_ark, offline=bool(_os.environ.get("KISWARM_OFFLINE")))
+            _ark_transfer = ArkTransfer(ark=_ark)
+            _ark_transfer.start_server()
+        except Exception as e:
+            logger.warning(f"[Ark] Init failed: {e}")
+    return _ark, _ark_manager, _ark_transfer
+
+
+@app.route("/ark/status", methods=["GET"])
+def ark_status():
+    ark, _, _ = _get_ark()
+    if not ark:
+        return jsonify({"error": "Ark not initialized"}), 503
+    return jsonify(ark.status().to_dict())
+
+
+@app.route("/ark/what", methods=["GET"])
+def ark_what():
+    ark, _, _ = _get_ark()
+    if not ark:
+        return jsonify({"error": "Ark not initialized"}), 503
+    return jsonify(ark.what_do_i_have())
+
+
+@app.route("/ark/audit", methods=["GET"])
+def ark_audit():
+    _, mgr, _ = _get_ark()
+    if not mgr:
+        return jsonify({"error": "ArkManager not initialized"}), 503
+    return jsonify(mgr.audit())
+
+
+@app.route("/ark/fill/critical", methods=["POST"])
+def ark_fill_critical():
+    _, mgr, _ = _get_ark()
+    if not mgr:
+        return jsonify({"error": "ArkManager not initialized"}), 503
+    results = mgr.fill_critical()
+    return jsonify({
+        "results":       [{"item_id": r.item_id, "success": r.success,
+                           "error": r.error} for r in results],
+        "success_count": sum(1 for r in results if r.success),
+        "total":         len(results),
+    })
+
+
+@app.route("/ark/prune", methods=["POST"])
+def ark_prune():
+    _, mgr, _ = _get_ark()
+    if not mgr:
+        return jsonify({"error": "ArkManager not initialized"}), 503
+    d = request.get_json() or {}
+    return jsonify(mgr.prune(keep_critical=d.get("keep_critical", True)))
+
+
+@app.route("/ark/integrity", methods=["GET"])
+def ark_integrity():
+    ark, _, _ = _get_ark()
+    if not ark:
+        return jsonify({"error": "Ark not initialized"}), 503
+    quick   = request.args.get("quick", "true").lower() == "true"
+    results = ark.integrity_check(quick=quick)
+    summary = {}
+    for state in set(results.values()):
+        summary[state.value] = sum(1 for v in results.values() if v == state)
+    return jsonify({"summary": summary, "items": len(results)})
+
+
+@app.route("/ark/bootstrap", methods=["POST"])
+def ark_bootstrap():
+    from .ark.bootstrap_engine import BootstrapEngine
+    ark, _, _ = _get_ark()
+    if not ark:
+        return jsonify({"error": "Ark not initialized"}), 503
+    d       = request.get_json() or {}
+    dry_run = d.get("dry_run", True)
+    engine  = BootstrapEngine(
+        ark=ark,
+        target_dir=d.get("target_dir", _os.path.expanduser("~/KISWARM")),
+        dry_run=dry_run,
+    )
+    report = engine.bootstrap()
+    return jsonify(report.to_dict()), 200 if report.success else 207
+
+
+@app.route("/ark/transfer/status", methods=["GET"])
+def ark_transfer_status():
+    _, _, transfer = _get_ark()
+    if not transfer:
+        return jsonify({"error": "ArkTransfer not initialized"}), 503
+    return jsonify(transfer.status())
+
+
+@app.route("/ark/transfer/pull", methods=["POST"])
+def ark_transfer_pull():
+    _, _, transfer = _get_ark()
+    if not transfer:
+        return jsonify({"error": "ArkTransfer not initialized"}), 503
+    d = request.get_json() or {}
+    peer_addr = d.get("peer_address")
+    if not peer_addr:
+        return jsonify({"error": "peer_address required"}), 400
+    session = transfer.receiver.pull_from_peer(
+        peer_addr,
+        d.get("peer_port", 11442),
+        critical_only=d.get("critical_only", True),
+    )
+    return jsonify(session.to_dict())
+
+
+@app.route("/ark/generate-script", methods=["POST"])
+def ark_generate_script():
+    from .ark.bootstrap_engine import BootstrapEngine
+    ark, _, _ = _get_ark()
+    output = _os.path.expanduser("~/KISWARM/.ark/script/bootstrap_offline.sh")
+    try:
+        path = BootstrapEngine.generate_offline_script(
+            ark_dir=ark.ark_dir if ark else _os.path.expanduser("~/KISWARM/.ark"),
+            output_path=output,
+        )
+        if ark:
+            item = ark.get_item("script:bootstrap-offline")
+            if item:
+                ark.store_file("script:bootstrap-offline", path)
+        return jsonify({"status": "ok", "path": path})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+# ── v4.9: Software Ark (offline resilience) ──────────────────────────────────
+
+_ark_inst     = None
+_ark_mgr_inst = None
+_ark_xfr_inst = None
+
+def _get_ark():
+    global _ark_inst, _ark_mgr_inst, _ark_xfr_inst
+    if _ark_inst is None:
+        try:
+            from .ark.software_ark import SoftwareArk
+            from .ark.ark_manager  import ArkManager
+            from .ark.ark_transfer import ArkTransfer
+            _ark_inst     = SoftwareArk()
+            _ark_mgr_inst = ArkManager(ark=_ark_inst)
+            _ark_xfr_inst = ArkTransfer(ark=_ark_inst)
+            _ark_xfr_inst.start_server()
+        except Exception as e:
+            logger.warning(f"[Ark] Init failed: {e}")
+    return _ark_inst, _ark_mgr_inst, _ark_xfr_inst
 # ── v4.8: P2P Mesh Network (parallel to GitHub track) ───────────────────────
 
 _mesh_peer    = None

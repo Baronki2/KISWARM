@@ -2742,3 +2742,92 @@ POST /mesh/sync            # Dual-Track Sync (GitHub + P2P)
 
 **Kein Single Point of Failure auf keiner Ebene.**
 
+
+---
+
+## 🗄️ v4.9 — Software Ark: 100GB Offline Independence
+
+### Das Prinzip
+
+```
+WENN ALLES DOWN IST:
+  ✗ GitHub  ✗ PyPI  ✗ Ollama Registry  ✗ apt/dnf  ✗ Internet
+
+JEDER KISWARM NODE KANN TROTZDEM:
+  → Sich selbst auf neuer Hardware aufsetzen
+  → Einem anderen Node alles übergeben  
+  → Eine KI laufen lassen
+  → Fixes propagieren
+```
+
+### 100GB Verteilung
+
+```
+KISWARM SOFTWARE ARK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ollama + KI-Modelle (tiered nach RAM):   ~45GB
+  ├─ qwen2.5:0.5b  (~400MB) — 1GB RAM   CRITICAL
+  ├─ qwen2.5:3b    (~2GB)   — 4GB RAM   HIGH
+  ├─ qwen2.5:7b    (~4.5GB) — 8GB RAM   NORMAL
+  ├─ qwen2.5:14b   (~9GB)   — 16GB RAM  NORMAL
+  └─ nomic-embed   (~274MB) — 1GB RAM   HIGH
+
+Python Wheels (offline pip):              ~8GB
+OS Packages (apt/dnf cache):              ~5GB
+KISWARM Git Bundles (3 Versionen):       ~0.5GB
+Docker Images (optional):               ~15GB
+Freier Buffer:                          ~26GB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GESAMT:                                 ~100GB
+```
+
+### 4 neue Module
+
+| Nr | Modul | Datei | Funktion |
+|----|-------|-------|---------|
+| 50 | SoftwareArk | `ark/software_ark.py` | Inventar, SHA-256 Verifikation, Bootstrap-Check |
+| 51 | ArkManager | `ark/ark_manager.py` | Download, Aktualisierung, Disk-Management |
+| 52 | BootstrapEngine | `ark/bootstrap_engine.py` | 10-Phase Offline-Installation auf neuer Hardware |
+| 53 | ArkTransfer | `ark/ark_transfer.py` | P2P Delta-Transfer auf Port 11442 |
+
+### Bootstrap ohne Internet
+
+```bash
+# 1. Ark von Peer holen (wenn online)
+curl -X POST localhost:11436/ark/transfer/pull \
+  -d '{"peer_address":"192.168.1.10", "critical_only": true}'
+
+# 2. Bootstrap auf neuer Hardware
+curl -X POST localhost:11436/ark/bootstrap \
+  -d '{"dry_run": false}'
+
+# 3. Status prüfen
+curl localhost:11436/ark/what
+```
+
+### Neue API-Endpoints (Port 11436)
+
+```
+GET  /ark/status           Ark-Inventar Status
+GET  /ark/what             Was kann dieser Node gerade?
+GET  /ark/audit            Was fehlt? Download-Plan
+GET  /ark/integrity        SHA-256 Prüfung aller Items
+POST /ark/fill/critical    CRITICAL Items herunterladen
+POST /ark/prune            LOW-Priority Items löschen
+POST /ark/bootstrap        KISWARM auf dieser Maschine installieren
+GET  /ark/transfer/status  Transfer-Server Status
+POST /ark/transfer/pull    Items von Peer-Node holen
+POST /ark/generate-script  Offline-Bootstrap-Script generieren
+```
+
+### Vollständige Redundanz-Matrix
+
+| Szenario | GitHub | P2P Mesh | Ark | System |
+|----------|--------|----------|-----|--------|
+| Alles online | ✓ | ✓ | ✓ | Optimal |
+| Kein Internet | ✗ | ✓ | ✓ | Voll funktional |
+| Neues Gerät, kein Internet | ✗ | ✓ | ✓ | Bootstrap via Ark |
+| Isolated (air-gap) | ✗ | ✗ | ✓ | Standalone Bootstrap |
+| Ark leer, offline | ✗ | ✗ | ✗ | 6 Built-in Fixes |
+
+**Kein Single Point of Failure auf keiner Ebene.**
