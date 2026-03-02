@@ -1593,145 +1593,6 @@ def _get_governance():
         from .mutation_governance import MutationGovernanceEngine
         app._governance = MutationGovernanceEngine()
     return app._governance
-
-
-# ── TD3 Controller ────────────────────────────────────────────────────────────
-
-@app.route("/td3/act", methods=["POST"])
-def td3_act():
-    """POST /td3/act — select bounded PLC parameter-shift action"""
-    data  = request.get_json() or {}
-    state = data.get("state", [0.0] * 256)
-    det   = data.get("deterministic", False)
-    noise = data.get("exploration_noise", 0.05)
-    try:
-        ctrl = _get_td3()
-        action, info = ctrl.select_action(state, deterministic=det,
-                                          exploration_noise=noise)
-        return jsonify({"status": "ok", "action": action, "info": info})
-    except Exception as e:
-        return jsonify({"status": "error", "error": str(e)}), 500
-
-@app.route("/td3/observe", methods=["POST"])
-def td3_observe():
-    """POST /td3/observe — push transition into replay buffer"""
-    data = request.get_json() or {}
-    try:
-        ctrl = _get_td3()
-        ctrl.observe(
-            state      = data.get("state", []),
-            action     = data.get("action", []),
-            reward     = float(data.get("reward", 0.0)),
-            next_state = data.get("next_state", []),
-            done       = bool(data.get("done", False)),
-            cost       = float(data.get("cost", 0.0)),
-        )
-        return jsonify({"status": "ok",
-                        "buffer_size": len(ctrl.buffer)})
-    except Exception as e:
-        return jsonify({"status": "error", "error": str(e)}), 500
-
-@app.route("/td3/update", methods=["POST"])
-def td3_update():
-    """POST /td3/update — perform one TD3 training step"""
-    try:
-        ctrl   = _get_td3()
-        result = ctrl.update()
-        return jsonify({"status": "ok", "result": result})
-    except Exception as e:
-        return jsonify({"status": "error", "error": str(e)}), 500
-
-@app.route("/td3/reward", methods=["POST"])
-def td3_reward():
-    """POST /td3/reward — compute CIEC reward from KPI scores"""
-    data = request.get_json() or {}
-    try:
-        from .td3_controller import TD3IndustrialController
-        r = TD3IndustrialController.compute_reward(
-            stability_score    = float(data.get("stability_score",    0.8)),
-            efficiency_score   = float(data.get("efficiency_score",   0.7)),
-            actuator_cycles    = float(data.get("actuator_cycles",    0.1)),
-            boundary_violation = float(data.get("boundary_violation", 0.0)),
-            oscillation        = float(data.get("oscillation",        0.05)),
-        )
-        return jsonify({"status": "ok", "reward": round(r, 6)})
-    except Exception as e:
-        return jsonify({"status": "error", "error": str(e)}), 500
-
-@app.route("/td3/stats", methods=["GET"])
-def td3_stats():
-    """GET /td3/stats — TD3 training statistics"""
-    try:
-        return jsonify({"status": "ok", "stats": _get_td3().get_stats()})
-    except Exception as e:
-        return jsonify({"status": "error", "error": str(e)}), 500
-
-
-# ── IEC 61131-3 AST Parser ────────────────────────────────────────────────────
-
-@app.route("/ast/parse", methods=["POST"])
-def ast_parse():
-    """POST /ast/parse — full IEC 61131-3 ST parse → AST+CFG+DDG+SDG"""
-    data   = request.get_json() or {}
-    source = data.get("source", "")
-    if not source:
-        return jsonify({"status": "error", "error": "source required"}), 400
-    try:
-        result = _get_ast_parser().parse(source, data.get("program_name", "PROG"))
-        return jsonify({"status": "ok", "result": result.to_dict()})
-    except Exception as e:
-        return jsonify({"status": "error", "error": str(e)}), 500
-
-@app.route("/ast/patterns", methods=["POST"])
-def ast_patterns():
-    """POST /ast/patterns — detect PID blocks, interlocks, dead code"""
-    data   = request.get_json() or {}
-    source = data.get("source", "")
-    if not source:
-        return jsonify({"status": "error", "error": "source required"}), 400
-    try:
-        result = _get_ast_parser().parse(source)
-        return jsonify({
-            "status":     "ok",
-            "pid_blocks": [{"name": p.name, "kp": p.kp, "ki": p.ki, "kd": p.kd}
-                           for p in result.pid_blocks],
-            "interlocks": [{"name": i.name, "condition": i.condition, "safety": i.safety}
-                           for i in result.interlocks],
-            "dead_code":  [{"description": d.description, "line": d.line}
-                           for d in result.dead_code],
-        })
-    except Exception as e:
-        return jsonify({"status": "error", "error": str(e)}), 500
-
-@app.route("/ast/graphs", methods=["POST"])
-def ast_graphs():
-    """POST /ast/graphs — return CFG/DDG/SDG graph summaries"""
-    data   = request.get_json() or {}
-    source = data.get("source", "")
-    if not source:
-        return jsonify({"status": "error", "error": "source required"}), 400
-    try:
-        result = _get_ast_parser().parse(source)
-        return jsonify({
-            "status":    "ok",
-            "cfg_nodes": len(result.cfg),
-            "ddg_edges": len(result.ddg_edges),
-            "sdg_edges": len(result.sdg_edges),
-            "var_count": result.var_count,
-            "stmt_count":result.stmt_count,
-        })
-    except Exception as e:
-        return jsonify({"status": "error", "error": str(e)}), 500
-
-@app.route("/ast/stats", methods=["GET"])
-def ast_stats():
-    """GET /ast/stats — parser cache and usage stats"""
-    try:
-        return jsonify({"status": "ok", "stats": _get_ast_parser().get_stats()})
-    except Exception as e:
-        return jsonify({"status": "error", "error": str(e)}), 500
-
-
 # ── Extended Physics Twin ─────────────────────────────────────────────────────
 
 @app.route("/physics/step", methods=["POST"])
@@ -3518,7 +3379,128 @@ def advisor_ask():
     return jsonify(_intel.answer(q))
 
 
-# ── v4.7: Experience Feedback Loop ──────────────────────────────────────────
+# ── v4.8: P2P Mesh Network (parallel to GitHub track) ───────────────────────
+
+_mesh_peer    = None
+_mesh_gossip  = None
+_mesh_discovery = None
+
+def _get_mesh():
+    global _mesh_peer, _mesh_gossip, _mesh_discovery
+    if _mesh_peer is None:
+        try:
+            from .swarm_peer      import SwarmPeer
+            from .gossip_protocol import GossipProtocol
+            from .peer_discovery  import PeerDiscovery
+            import platform
+            _mesh_gossip    = GossipProtocol(node_id="sentinel-api")
+            _mesh_peer      = SwarmPeer(node_id="sentinel-api",
+                                        on_gossip=_mesh_gossip.receive)
+            _mesh_discovery = PeerDiscovery(node_id="sentinel-api",
+                                             on_discovered=lambda a, p: _mesh_peer.connect(a, p))
+            _mesh_gossip.set_broadcaster(_mesh_peer.broadcast_gossip)
+        except Exception as e:
+            logger.warning(f"Mesh init failed: {e}")
+    return _mesh_peer, _mesh_gossip, _mesh_discovery
+
+
+@app.route("/mesh/status", methods=["GET"])
+def mesh_status():
+    peer, gossip, disc = _get_mesh()
+    return jsonify({
+        "peer":      peer.status() if peer else {"running": False},
+        "gossip":    gossip.stats() if gossip else {},
+        "discovery": disc.stats() if disc else {},
+        "dual_track": {
+            "github": "FeedbackChannel (internet)",
+            "p2p":    "SwarmPeer + GossipProtocol (zero-dependency)",
+        }
+    })
+
+
+@app.route("/mesh/peers", methods=["GET"])
+def mesh_peers():
+    peer, _, _ = _get_mesh()
+    if not peer:
+        return jsonify({"peers": [], "error": "Mesh not initialized"}), 503
+    return jsonify({"peers": [p.to_dict() for p in peer.list_peers()]})
+
+
+@app.route("/mesh/peer/add", methods=["POST"])
+def mesh_peer_add():
+    d    = request.get_json() or {}
+    addr = d.get("address", "")
+    port = d.get("port", 11440)
+    if not addr:
+        return jsonify({"error": "address required"}), 400
+    peer, _, disc = _get_mesh()
+    if disc:
+        disc.register_manual(addr, port)
+    ok = peer.connect(addr, port) if peer else False
+    return jsonify({"connected": ok, "address": addr, "port": port})
+
+
+@app.route("/mesh/peer/remove", methods=["POST"])
+def mesh_peer_remove():
+    d    = request.get_json() or {}
+    addr = d.get("address", "")
+    port = d.get("port", 11440)
+    _, _, disc = _get_mesh()
+    if disc:
+        disc.remove_peer(addr, port)
+    return jsonify({"removed": True, "address": addr})
+
+
+@app.route("/mesh/gossip/fix", methods=["POST"])
+def mesh_gossip_fix():
+    d   = request.get_json() or {}
+    fix = d.get("fix", {})
+    if not fix:
+        return jsonify({"error": "fix required"}), 400
+    _, gossip, _ = _get_mesh()
+    if not gossip:
+        return jsonify({"error": "Gossip not initialized"}), 503
+    item = gossip.gossip_fix(fix)
+    return jsonify({"gossip_id": item.gossip_id, "ttl": item.ttl,
+                    "signature": item.signature}), 201
+
+
+@app.route("/mesh/gossip/upgrade", methods=["POST"])
+def mesh_gossip_upgrade():
+    d       = request.get_json() or {}
+    version = d.get("version", "")
+    if not version:
+        return jsonify({"error": "version required"}), 400
+    _, gossip, _ = _get_mesh()
+    if not gossip:
+        return jsonify({"error": "Gossip not initialized"}), 503
+    item = gossip.gossip_upgrade(version, d.get("changelog", ""))
+    return jsonify({"gossip_id": item.gossip_id, "version": version})
+
+
+@app.route("/mesh/sync", methods=["POST"])
+def mesh_sync():
+    """Sync fixes from all peers AND from GitHub — dual-track."""
+    results = {}
+    # P2P track
+    peer, gossip, _ = _get_mesh()
+    if peer and gossip:
+        sent = peer.broadcast_gossip({"type": "sync_request"})
+        results["p2p"] = {"synced_peers": sent}
+    else:
+        results["p2p"] = {"error": "Mesh not available"}
+    # GitHub track
+    try:
+        from .feedback_channel import FeedbackChannel
+        ch = FeedbackChannel()
+        fixes = ch.load_known_fixes(force_refresh=True)
+        results["github"] = {"fixes_loaded": len(fixes)}
+    except Exception as e:
+        results["github"] = {"error": str(e)}
+    return jsonify({"dual_track_sync": results})
+
+
+
 
 def _get_collector():
     from .experience_collector import get_collector
@@ -3637,7 +3619,7 @@ def sysadmin_quick_heal():
 
 if __name__ == "__main__":
     logger.info("╔══════════════════════════════════════════════════════════════╗")
-    logger.info("║  KISWARM v4.7 — Feedback Loop · SysAdmin · 45 Modules     ║")
-    logger.info("║  Port: 11436  |  Modules: 45  |  Endpoints: 242           ║")
+    logger.info("║  KISWARM v4.8 — Dual-Track Mesh · 49 Modules · 258 Endpoints║")
+    logger.info("║  Port: 11436  |  P2P: 11440  |  Control: 11441             ║")
     logger.info("╚══════════════════════════════════════════════════════════════╝")
     app.run(host="127.0.0.1", port=11436, debug=False, threaded=True)

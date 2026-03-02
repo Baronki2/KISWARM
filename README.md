@@ -2631,3 +2631,114 @@ curl -X POST http://localhost:11436/feedback/propose-fix \
 - Team-Fixes: FIX-001 bis FIX-009 (eingebettet, immer verfügbar offline)
 - Community-Fixes: FIX-010+ (via GitHub PRs, automatisch gemergt wenn validiert)
 - Jeder `git pull` bringt neue Fixes auf alle Systeme
+
+---
+
+## 🕸️ v4.8 — Dual-Track Mesh Network (Vollständige Unabhängigkeit)
+
+### Die Architektur-Entscheidung
+
+Zwei parallele Tracks — beide laufen gleichzeitig, keiner ist vom anderen abhängig:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  TRACK A: GitHub (bestehend seit v4.7)                      │
+│  FeedbackChannel → GitHub Issues → Actions → known_fixes    │
+│  Stärke: Globale Reichweite, Community-Scale               │
+│  Schwäche: Internet required, GitHub Compliance             │
+└─────────────────────────────────────────────────────────────┘
+         BEIDE LAUFEN PARALLEL — ZWEIGLEISIG
+┌─────────────────────────────────────────────────────────────┐
+│  TRACK B: P2P Mesh (NEU in v4.8)                           │
+│  SwarmPeer → GossipProtocol → known_fixes.json (lokal)     │
+│  Stärke: Zero Dependency, Air-Gap capable, ms Latenz       │
+│  Schwäche: Reichweite begrenzt auf verbundene Nodes        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Mesh-Topologie (Spinnennetz-Prinzip)
+
+```
+     Node A ←──────→ Node B
+       ↕    \      /    ↕
+     Node E   ╲  ╱   Node C
+        ↕      ╲╱      ↕
+     Node F ←──→ Node D
+     
+Max 5 Peers pro Node.
+Über 4 Hops: 5⁴ = 625 erreichbare Nodes.
+Kein Zentrum. Kein Single Point of Failure.
+```
+
+### Neue Module in v4.8
+
+| Nr | Modul | Datei | Funktion |
+|----|-------|-------|---------|
+| 46 | SwarmPeer | `swarm_peer.py` | TCP-Verbindungsmanager, max 5 Peers, Heartbeat |
+| 47 | GossipProtocol | `gossip_protocol.py` | Fix/Experience-Propagierung, SHA-256 Dedup, TTL |
+| 48 | PeerDiscovery | `peer_discovery.py` | 3-Strategie Peer-Suche ohne zentrales Verzeichnis |
+| 49 | KISWARMCli | `kiswarm_cli.py` | CLI wie Gemini CLI, läuft parallel auf Port 11440 |
+
+### Gossip-Propagierung
+
+```
+Node A entdeckt neuen Fix:
+  gossip_fix({"fix_id": "FIX-010", ...})
+    → TTL=4, Signature=SHA-256[:16]
+    → sendet an alle 5 Peers
+    → jeder Peer sendet weiter (TTL-1)
+    → nach 4 Hops: 625 Nodes haben den Fix
+    → kein Fix wird zweimal verarbeitet (Signature-Dedup)
+    → Fix wird in lokale known_fixes.json gemergt
+```
+
+### kiswarm-cli — Die neue CLI
+
+```bash
+# Installieren (nach KISWARM Deployment)
+echo 'alias kiswarm-cli="python3 ~/KISWARM/python/sentinel/kiswarm_cli.py"' >> ~/.bashrc
+
+# Peer hinzufügen (manuell)
+kiswarm-cli peer add 192.168.1.50
+
+# Lokales Subnetz scannen (opt-in)
+kiswarm-cli peer scan
+
+# Fix ins Mesh broadcasten
+kiswarm-cli gossip fix
+
+# Beide Tracks synchronisieren
+kiswarm-cli sync
+
+# System heilen
+kiswarm-cli heal
+
+# Daemon starten
+kiswarm-cli daemon start
+```
+
+### Neue API-Endpoints (Port 11436)
+
+```bash
+GET  /mesh/status          # Mesh-Status + Peer-Liste
+GET  /mesh/peers           # Aktive Peer-Verbindungen
+POST /mesh/peer/add        # Peer hinzufügen
+POST /mesh/peer/remove     # Peer entfernen
+POST /mesh/gossip/fix      # Fix ins Mesh senden
+POST /mesh/gossip/upgrade  # Upgrade-Signal senden
+POST /mesh/sync            # Dual-Track Sync (GitHub + P2P)
+```
+
+### Redundanz-Modell
+
+| Szenario | GitHub Track | P2P Track | System |
+|----------|-------------|-----------|--------|
+| Normal | ✓ | ✓ | Optimal |
+| Kein Internet | ✗ | ✓ | Voll funktional |
+| GitHub down | ✗ | ✓ | Voll funktional |
+| Isoliertes Netz | ✗ | ✓ | Voll funktional |
+| Alle Peers offline | ✓ | ✗ | Lokal funktional |
+| Beides down | Built-in Fixes | Built-in Fixes | 6 Fixes immer verfügbar |
+
+**Kein Single Point of Failure auf keiner Ebene.**
+
