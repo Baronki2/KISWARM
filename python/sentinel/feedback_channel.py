@@ -47,11 +47,18 @@ BRANCH       = "main"
 KNOWN_FIXES_PATH = "experience/known_fixes.json"
 KNOWN_FIXES_URL  = f"{GITHUB_RAW}/{REPO_OWNER}/{REPO_NAME}/{BRANCH}/{KNOWN_FIXES_PATH}"
 
-# Local cache
-_LOCAL_FIXES_FILE = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-    "experience", "known_fixes.json"
-)
+# Local cache - use KISWARM_HOME environment variable or derive from __file__
+def _get_kiswarm_home():
+    """Get KISWARM home directory from environment or derive from module location."""
+    env_home = os.environ.get("KISWARM_HOME")
+    if env_home:
+        return Path(env_home)
+    # Fallback: derive from module location (3 levels up from this file)
+    return Path(__file__).parent.parent.parent
+
+_KISWARM_HOME = _get_kiswarm_home()
+_LOCAL_FIXES_FILE = os.path.join(_KISWARM_HOME, "experience", "known_fixes.json")
+_LOGS_DIR = os.path.join(_KISWARM_HOME, "logs")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -153,8 +160,9 @@ class FeedbackChannel:
         self._fixes_loaded_at: float = 0.0
         self._cache_ttl = 3600  # 1 hour
 
-        # Ensure local experience dir exists
+        # Ensure local experience dir and logs dir exist
         os.makedirs(os.path.dirname(_LOCAL_FIXES_FILE), exist_ok=True)
+        os.makedirs(_LOGS_DIR, exist_ok=True)
 
     # ── INBOUND: Load known fixes ─────────────────────────────────────────────
 
@@ -242,7 +250,7 @@ class FeedbackChannel:
                 "fix_commands": [
                     "pkill -f 'ollama serve' || true",
                     "sleep 2",
-                    "nohup ollama serve > ~/logs/ollama.log 2>&1 &",
+                    "nohup ollama serve > $KISWARM_HOME/logs/ollama.log 2>&1 &",
                     "sleep 5",
                 ],
                 "fix_python": None,
@@ -259,10 +267,10 @@ class FeedbackChannel:
                 "module": None,
                 "os_family": None,
                 "fix_commands": [
-                    "rm -rf ~/KISWARM/mem0_env",
-                    "python3 -m venv ~/KISWARM/mem0_env",
-                    "~/KISWARM/mem0_env/bin/pip install --upgrade pip",
-                    "~/KISWARM/mem0_env/bin/pip install ollama mem0 qdrant-client flask flask-cors rich psutil requests",
+                    "rm -rf $KISWARM_HOME/mem0_env",
+                    "python3 -m venv $KISWARM_HOME/mem0_env",
+                    "$KISWARM_HOME/mem0_env/bin/pip install --upgrade pip",
+                    "$KISWARM_HOME/mem0_env/bin/pip install ollama mem0 qdrant-client flask flask-cors rich psutil requests",
                 ],
                 "fix_python": None,
                 "description": "Rebuild virtual environment from scratch",
@@ -278,8 +286,8 @@ class FeedbackChannel:
                 "module": None,
                 "os_family": "debian",
                 "fix_commands": [
-                    "chmod -R 755 ~/KISWARM/sentinel_data/",
-                    "chown -R $(whoami):$(whoami) ~/KISWARM/sentinel_data/ || true",
+                    "chmod -R 755 $KISWARM_HOME/sentinel_data/",
+                    "chown -R $(whoami):$(whoami) $KISWARM_HOME/sentinel_data/ || true",
                 ],
                 "fix_python": None,
                 "description": "Fix Qdrant storage permissions",
@@ -329,7 +337,7 @@ class FeedbackChannel:
                 "os_family": None,
                 "fix_commands": [
                     "git config --global http.sslVerify false",
-                    "git clone https://github.com/Baronki2/KISWARM.git ~/KISWARM --depth 1",
+                    "git clone https://github.com/Baronki2/KISWARM.git $KISWARM_HOME --depth 1",
                 ],
                 "fix_python": None,
                 "description": "Shallow clone with SSL verification disabled",
