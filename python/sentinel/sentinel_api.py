@@ -4318,9 +4318,305 @@ def kiinstall_execute():
     return jsonify(_get_kiinstall().execute_with_hexstrike(task_type, target, data.get("params")))
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# v5.1 — SOLAR CHASE: PLANETARY SUN-FOLLOWING SYSTEM (Modules 34-38)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+from .solar_chase_coordinator import (
+    SolarChaseCoordinator, SolarPositionCalculator, NodeLocation
+)
+from .energy_overcapacity_pivot import EnergyOvercapacityPivotEngine
+from .planetary_sun_follower import (
+    PlanetarySunFollowerMesh, ZeroEmissionComputeTracker, SunHandoffValidator,
+    PlanetaryMachine
+)
+
+# Initialize solar chase singletons
+_solar_coordinator = None
+_pivot_engine = None
+_sun_mesh = None
+_emission_tracker = None
+_handoff_validator = None
+_planetary_machine = None
+
+
+def _get_solar_coordinator():
+    global _solar_coordinator
+    if _solar_coordinator is None:
+        _solar_coordinator = SolarChaseCoordinator()
+    return _solar_coordinator
+
+
+def _get_pivot_engine():
+    global _pivot_engine
+    if _pivot_engine is None:
+        _pivot_engine = EnergyOvercapacityPivotEngine()
+    return _pivot_engine
+
+
+def _get_sun_mesh():
+    global _sun_mesh
+    if _sun_mesh is None:
+        _sun_mesh = PlanetarySunFollowerMesh()
+    return _sun_mesh
+
+
+def _get_emission_tracker():
+    global _emission_tracker
+    if _emission_tracker is None:
+        _emission_tracker = ZeroEmissionComputeTracker()
+    return _emission_tracker
+
+
+def _get_handoff_validator():
+    global _handoff_validator
+    if _handoff_validator is None:
+        _handoff_validator = SunHandoffValidator()
+    return _handoff_validator
+
+
+def _get_planetary_machine():
+    global _planetary_machine
+    if _planetary_machine is None:
+        _planetary_machine = PlanetaryMachine()
+    return _planetary_machine
+
+
+# ── Module 34: Solar Chase Coordinator ────────────────────────────────────────
+
+@app.route("/solar-chase/status", methods=["GET"])
+def solar_chase_status():
+    """GET /solar-chase/status — Overall solar chase system status."""
+    return jsonify({
+        "status": "ok",
+        "solar_status": _get_solar_coordinator().get_solar_status().value,
+        "compute_mode": _get_solar_coordinator().compute_mode.value,
+        "stats": _get_solar_coordinator().get_stats()
+    })
+
+
+@app.route("/solar-chase/energy", methods=["GET"])
+def solar_chase_energy():
+    """GET /solar-chase/energy — Current energy state from TCS."""
+    state = _get_solar_coordinator().get_energy_state()
+    return jsonify(state.to_dict())
+
+
+@app.route("/solar-chase/solar-position", methods=["GET"])
+def solar_chase_position():
+    """GET /solar-chase/solar-position — Current sun position."""
+    pos = _get_solar_coordinator().get_solar_position()
+    return jsonify(pos.to_dict())
+
+
+@app.route("/solar-chase/compute-load", methods=["GET"])
+def solar_chase_compute_load():
+    """GET /solar-chase/compute-load — Current compute load allocation."""
+    load = _get_solar_coordinator().get_compute_load()
+    return jsonify(load.to_dict())
+
+
+@app.route("/solar-chase/pivot", methods=["POST"])
+def solar_chase_pivot():
+    """POST /solar-chase/pivot — Manually trigger pivot evaluation."""
+    result = _get_solar_coordinator().check_overcapacity_pivot()
+    return jsonify({"pivoted": result})
+
+
+@app.route("/solar-chase/events", methods=["GET"])
+def solar_chase_events():
+    """GET /solar-chase/events — Recent solar chase events."""
+    limit = int(request.args.get("limit", 50))
+    return jsonify({"events": _get_solar_coordinator().get_events(limit)})
+
+
+@app.route("/solar-chase/start-monitoring", methods=["POST"])
+def solar_chase_start():
+    """POST /solar-chase/start-monitoring — Start automatic monitoring."""
+    interval = float(request.args.get("interval", 30))
+    _get_solar_coordinator().start_monitoring(interval)
+    return jsonify({"status": "monitoring_started", "interval": interval})
+
+
+@app.route("/solar-chase/stop-monitoring", methods=["POST"])
+def solar_chase_stop():
+    """POST /solar-chase/stop-monitoring — Stop automatic monitoring."""
+    _get_solar_coordinator().stop_monitoring()
+    return jsonify({"status": "monitoring_stopped"})
+
+
+# ── Module 35: Energy Overcapacity Pivot Engine ───────────────────────────────
+
+@app.route("/pivot/status", methods=["GET"])
+def pivot_status():
+    """GET /pivot/status — Pivot engine status."""
+    return jsonify(_get_pivot_engine().get_current_state())
+
+
+@app.route("/pivot/evaluate", methods=["POST"])
+def pivot_evaluate():
+    """POST /pivot/evaluate — Evaluate and potentially pivot."""
+    result = _get_pivot_engine().evaluate_and_pivot()
+    return jsonify(result)
+
+
+@app.route("/pivot/decisions", methods=["GET"])
+def pivot_decisions():
+    """GET /pivot/decisions — Recent pivot decisions."""
+    limit = int(request.args.get("limit", 50))
+    return jsonify({"decisions": _get_pivot_engine().get_decisions(limit)})
+
+
+@app.route("/pivot/enforce-zero-feed", methods=["POST"])
+def pivot_enforce_zero():
+    """POST /pivot/enforce-zero-feed — Enforce zero feed-in policy."""
+    result = _get_pivot_engine().enforce_zero_feed_in()
+    return jsonify(result)
+
+
+# ── Module 36: Planetary Sun Follower Mesh ────────────────────────────────────
+
+@app.route("/sun-mesh/status", methods=["GET"])
+def sun_mesh_status():
+    """GET /sun-mesh/status — Mesh status and statistics."""
+    return jsonify(_get_sun_mesh().get_stats())
+
+
+@app.route("/sun-mesh/sunlit-nodes", methods=["GET"])
+def sun_mesh_sunlit():
+    """GET /sun-mesh/sunlit-nodes — Currently sunlit nodes in mesh."""
+    import asyncio
+    nodes = asyncio.run(_get_sun_mesh().query_sunlit_nodes())
+    return jsonify({"nodes": nodes, "count": len(nodes)})
+
+
+@app.route("/sun-mesh/migration-status", methods=["GET"])
+def sun_mesh_migration():
+    """GET /sun-mesh/migration-status — Current migration status."""
+    return jsonify(_get_sun_mesh().get_migration_status())
+
+
+@app.route("/sun-mesh/migration-history", methods=["GET"])
+def sun_mesh_history():
+    """GET /sun-mesh/migration-history — Migration history."""
+    limit = int(request.args.get("limit", 20))
+    return jsonify({"migrations": _get_sun_mesh().get_migration_history(limit)})
+
+
+# ── Module 37: Zero Emission Compute Tracker ──────────────────────────────────
+
+@app.route("/emission/status", methods=["GET"])
+def emission_status():
+    """GET /emission/status — Emission tracker status."""
+    return jsonify(_get_emission_tracker().get_stats())
+
+
+@app.route("/emission/events", methods=["GET"])
+def emission_events():
+    """GET /emission/events — Recent compute events."""
+    limit = int(request.args.get("limit", 50))
+    return jsonify({"events": _get_emission_tracker().get_events(limit)})
+
+
+@app.route("/emission/merkle-root", methods=["GET"])
+def emission_merkle():
+    """GET /emission/merkle-root — Current Merkle root."""
+    return jsonify({"merkle_root": _get_emission_tracker().get_merkle_root()})
+
+
+@app.route("/emission/verify", methods=["GET"])
+def emission_verify():
+    """GET /emission/verify — Verify ledger integrity."""
+    valid, checked = _get_emission_tracker().verify_integrity()
+    return jsonify({"valid": valid, "entries_checked": checked})
+
+
+@app.route("/emission/esg-report", methods=["GET"])
+def emission_esg():
+    """GET /emission/esg-report — Generate ESG compliance report."""
+    return jsonify(_get_emission_tracker().get_esg_report())
+
+
+@app.route("/emission/record", methods=["POST"])
+def emission_record():
+    """POST /emission/record — Record a compute event."""
+    data = request.get_json() or {}
+    event = _get_emission_tracker().record_compute_event(
+        kw_used=float(data.get("kw_used", 0)),
+        source=data.get("source", "solar_overcapacity"),
+        duration_seconds=float(data.get("duration_seconds", 0)),
+        grid_draw=float(data.get("grid_draw", 0))
+    )
+    return jsonify(event.to_dict()), 201
+
+
+# ── Module 38: Sun Handoff Validator ──────────────────────────────────────────
+
+@app.route("/handoff-validator/status", methods=["GET"])
+def handoff_validator_status():
+    """GET /handoff-validator/status — Validator statistics."""
+    return jsonify(_get_handoff_validator().get_stats())
+
+
+@app.route("/handoff-validator/rules", methods=["GET"])
+def handoff_validator_rules():
+    """GET /handoff-validator/rules — Validation rules."""
+    return jsonify({"rules": _get_handoff_validator().get_rules()})
+
+
+@app.route("/handoff-validator/validate", methods=["POST"])
+def handoff_validator_validate():
+    """POST /handoff-validator/validate — Validate a migration."""
+    data = request.get_json() or {}
+    report = _get_handoff_validator().validate_migration(
+        source_node=data.get("source_node", ""),
+        target_node=data.get("target_node", ""),
+        target_solar_flux=float(data.get("target_solar_flux", 0)),
+        target_trust_score=float(data.get("target_trust_score", 0)),
+        target_latency_ms=float(data.get("target_latency_ms", 0))
+    )
+    return jsonify(report.to_dict())
+
+
+@app.route("/handoff-validator/validations", methods=["GET"])
+def handoff_validator_validations():
+    """GET /handoff-validator/validations — Recent validations."""
+    limit = int(request.args.get("limit", 50))
+    return jsonify({"validations": _get_handoff_validator().get_validations(limit)})
+
+
+# ── Planetary Machine Integration ─────────────────────────────────────────────
+
+@app.route("/planetary/status", methods=["GET"])
+def planetary_status():
+    """GET /planetary/status — Complete planetary machine status."""
+    return jsonify(_get_planetary_machine().get_full_status())
+
+
+@app.route("/planetary/sun-chase", methods=["POST"])
+def planetary_sun_chase():
+    """POST /planetary/sun-chase — Run sun-chase cycle."""
+    import asyncio
+    result = asyncio.run(_get_planetary_machine().run_sun_chase_cycle())
+    return jsonify(result)
+
+
+# ── Solar Position Calculator ─────────────────────────────────────────────────
+
+@app.route("/solar-position", methods=["POST"])
+def solar_position_calc():
+    """POST /solar-position — Calculate sun position for any location."""
+    data = request.get_json() or {}
+    lat = float(data.get("latitude", 0))
+    lon = float(data.get("longitude", 0))
+    pos = SolarPositionCalculator.calculate_position(lat, lon)
+    return jsonify(pos.to_dict())
+
+
+
 if __name__ == "__main__":
     logger.info("╔══════════════════════════════════════════════════════════════╗")
-    logger.info("║  KISWARM v5.0 — HexStrike Guard · 52 Modules · 310 Endpoints║")
-    logger.info("║  Port: 11436  |  P2P: 11440  |  Control: 11441             ║")
+    logger.info("║  KISWARM v5.1 — Planetary Machine · 57 Modules · 360 Epts  ║")
+    logger.info("║  Port: 11436  |  Dashboard: 11437  |  P2P: 11440           ║")
     logger.info("╚══════════════════════════════════════════════════════════════╝")
     app.run(host="127.0.0.1", port=11436, debug=False, threaded=True)
