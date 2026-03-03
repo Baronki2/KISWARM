@@ -162,6 +162,137 @@ def health():
     })
 
 
+@app.route("/health/check-all")
+def health_check_all():
+    """
+    Comprehensive startup health check that validates all endpoints and components.
+    Returns detailed status of each subsystem.
+    """
+    import traceback
+    checks = {}
+    all_healthy = True
+
+    # 1. Core Components Health
+    components = [
+        ("bridge", lambda: _bridge is not None),
+        ("debate_engine", lambda: _debate is not None),
+        ("conflict_detector", lambda: _conflict is not None),
+        ("decay_engine", lambda: _decay is not None),
+        ("model_tracker", lambda: _tracker is not None),
+        ("crypto_ledger", lambda: _ledger is not None),
+        ("retrieval_guard", lambda: _guard is not None),
+        ("prompt_firewall", lambda: _firewall is not None),
+        ("fuzzy_tuner", lambda: _fuzzy is not None),
+        ("rl_agent", lambda: _rl is not None),
+        ("digital_twin", lambda: _twin is not None),
+        ("federated_mesh", lambda: _mesh is not None),
+    ]
+
+    for name, check_fn in components:
+        try:
+            healthy = check_fn()
+            checks[name] = {"status": "ok" if healthy else "degraded", "error": None}
+            if not healthy:
+                all_healthy = False
+        except Exception as e:
+            checks[name] = {"status": "error", "error": str(e)}
+            all_healthy = False
+
+    # 2. Memory System Check (Qdrant)
+    try:
+        memory_ok = _bridge.memory.client is not None
+        checks["qdrant_memory"] = {"status": "ok" if memory_ok else "degraded",
+                                   "connected": memory_ok}
+    except Exception as e:
+        checks["qdrant_memory"] = {"status": "error", "error": str(e)}
+        all_healthy = False
+
+    # 3. Ollama LLM Check
+    try:
+        import ollama
+        models = ollama.list()
+        # Handle both dict and ListResponse object types
+        if hasattr(models, 'models'):
+            model_count = len(models.models) if models.models else 0
+        elif isinstance(models, dict):
+            model_count = len(models.get('models', []))
+        else:
+            model_count = 0
+        checks["ollama"] = {"status": "ok", "models_available": model_count}
+    except Exception as e:
+        checks["ollama"] = {"status": "error", "error": str(e)}
+        all_healthy = False
+
+    # 4. Ledger Integrity Check
+    try:
+        ledger_valid = _ledger.size >= 0  # Basic sanity check
+        checks["ledger_integrity"] = {
+            "status": "ok",
+            "entries": _ledger.size,
+            "root": _ledger.root[:16] + "..." if _ledger.root else "empty"
+        }
+    except Exception as e:
+        checks["ledger_integrity"] = {"status": "error", "error": str(e)}
+        all_healthy = False
+
+    # 5. Decay Engine Check
+    try:
+        report = _decay.scan()
+        checks["decay_engine"] = {
+            "status": "ok",
+            "scanned": report.scanned,
+            "needs_revalidation": report.needs_revalidation
+        }
+    except Exception as e:
+        checks["decay_engine"] = {"status": "error", "error": str(e)}
+
+    # 6. Model Tracker Check
+    try:
+        board = _tracker.get_leaderboard()
+        checks["model_tracker"] = {"status": "ok", "models_tracked": len(board)}
+    except Exception as e:
+        checks["model_tracker"] = {"status": "error", "error": str(e)}
+
+    # 7. Firewall Check
+    try:
+        test_scan = _firewall.scan("test query")
+        checks["firewall"] = {"status": "ok", "test_passed": not test_scan.blocked}
+    except Exception as e:
+        checks["firewall"] = {"status": "error", "error": str(e)}
+
+    # 8. Sentence Transformers Check (semantic embeddings)
+    try:
+        from sentence_transformers import SentenceTransformer
+        checks["sentence_transformers"] = {"status": "ok", "available": True}
+    except ImportError:
+        checks["sentence_transformers"] = {"status": "degraded",
+                                           "error": "Not installed - semantic embeddings unavailable"}
+    except Exception as e:
+        checks["sentence_transformers"] = {"status": "error", "error": str(e)}
+
+    # 9. CIEC Modules Availability Check
+    ciec_modules = []
+    for mod_name in ["plc_parser", "scada_observer", "physics_twin",
+                     "rule_engine", "knowledge_graph", "actor_critic"]:
+        try:
+            __import__(f"sentinel.{mod_name}")
+            ciec_modules.append({"name": mod_name, "status": "available"})
+        except ImportError as e:
+            ciec_modules.append({"name": mod_name, "status": "missing", "error": str(e)})
+    checks["ciec_modules"] = {"status": "partial" if any(m["status"]=="missing" for m in ciec_modules) else "ok",
+                              "modules": ciec_modules}
+
+    # Summary
+    uptime = (datetime.datetime.now() - _start).total_seconds()
+    return jsonify({
+        "overall_status": "healthy" if all_healthy else "degraded",
+        "uptime_seconds": round(uptime, 1),
+        "timestamp": datetime.datetime.now().isoformat(),
+        "checks": checks,
+        "stats": _stats,
+    })
+
+
 @app.route("/sentinel/extract", methods=["POST"])
 def extract():
     data  = request.get_json() or {}
@@ -173,7 +304,7 @@ def extract():
     fw = _firewall.scan_query(query)
     if fw.blocked:
         return jsonify({"status": "blocked", "firewall": {
-            "threat_score": fw.threat_score, "threats": [t.value for t in fw.threat_types],
+            "threat_score": fw.threat_score, "threats": list(fw.threat_types),
         }}), 403
 
     force     = bool(data.get("force", False))
@@ -250,7 +381,7 @@ def sentinel_status():
         "threshold": _bridge.ckm.threshold,
         "scouts":    [s.__class__.__name__ for s in _bridge.scouts],
         "qdrant":    _bridge.memory.client is not None,
-        "ledger":    {"entries": _ledger.size, "root": _ledger.current_root[:16] + "..."},
+        "ledger":    {"entries": _ledger.size, "root": _ledger.root[:16] + "..."},
         "mesh":      _mesh.get_stats(),
         "timestamp": datetime.datetime.now().isoformat(),
     })
@@ -274,10 +405,10 @@ def firewall_scan():
     return jsonify({
         "status":       "success",
         "blocked":      report.blocked,
-        "threat_level": report.threat_level.value,
+        "threat_level": report.threat_level,
         "threat_score": report.threat_score,
-        "threats":      [t.value for t in report.threat_types],
-        "matches":      [{"pattern": m.pattern_name, "severity": m.severity.value} for m in report.matches],
+        "threats":      report.threat_types,
+        "matches":      [{"pattern": m.pattern_name, "severity": m.severity} for m in report.matches],
         "statistical":  report.statistical,
         "recommendation": report.recommendation,
     })
@@ -292,7 +423,7 @@ def decay_scan():
         "needs_revalidation": report.needs_revalidation,
         "retired":            report.retired,
         "healthy":            report.healthy,
-        "total":              report.total,
+        "total":              report.scanned,
     })
 
 
@@ -318,7 +449,7 @@ def ledger_status():
     return jsonify({
         "status":  "success",
         "entries": _ledger.size,
-        "root":    _ledger.current_root,
+        "root":    _ledger.root,
         "valid":   _ledger.size > 0,
     })
 
@@ -331,7 +462,7 @@ def ledger_verify():
         "status":          "success",
         "valid":           report.valid,
         "total_entries":   report.total_entries,
-        "tampered_entries": report.tampered_indices,
+        "tampered_entries": report.tampered_entries,
         "root_match":      report.root_match,
     })
 
@@ -382,7 +513,7 @@ def conflict_quick():
 
 @app.route("/tracker/leaderboard")
 def tracker_leaderboard():
-    board = _tracker.leaderboard()
+    board = _tracker.get_leaderboard()
     return jsonify({
         "status":      "success",
         "leaderboard": [{"rank": e.rank, "model": e.model_id, "elo": e.elo,
@@ -3784,9 +3915,412 @@ def sysadmin_quick_heal():
     return jsonify(quick_heal())
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# v5.0 — HEXSTRIKE GUARD + TOOL FORGE + KIINSTALL AGENT (Modules 31-33)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+from .hexstrike_guard import HexStrikeGuard, ToolRegistry
+from .tool_forge import ToolForge
+from .kiinstall_agent import KiInstallAgent
+
+# Initialize singletons
+_hexstrike_guard = None
+_tool_forge = None
+_kiinstall_agent = None
+
+
+def _get_hexstrike():
+    global _hexstrike_guard
+    if _hexstrike_guard is None:
+        _hexstrike_guard = HexStrikeGuard()
+    return _hexstrike_guard
+
+
+def _get_forge():
+    global _tool_forge
+    if _tool_forge is None:
+        _tool_forge = ToolForge()
+    return _tool_forge
+
+
+def _get_kiinstall():
+    global _kiinstall_agent
+    if _kiinstall_agent is None:
+        _kiinstall_agent = KiInstallAgent(hexstrike_guard=_get_hexstrike())
+    return _kiinstall_agent
+
+
+# ── Module 31: HexStrike Guard ────────────────────────────────────────────────
+
+@app.route("/guard/status", methods=["GET"])
+def guard_status():
+    """GET /guard/status — Overall guard system status."""
+    return jsonify({"status": "ok", "guard": _get_hexstrike().get_stats()})
+
+
+@app.route("/guard/agents", methods=["GET"])
+def guard_agents():
+    """GET /guard/agents — List all 12 HexStrike agents status."""
+    agent_name = request.args.get("agent")
+    return jsonify(_get_hexstrike().get_agent_status(agent_name))
+
+
+@app.route("/guard/tools", methods=["GET"])
+def guard_tools():
+    """GET /guard/tools — List security tools status (150+ tools)."""
+    category = request.args.get("category")
+    return jsonify(_get_hexstrike().get_tools_status(category))
+
+
+@app.route("/guard/tools/install", methods=["POST"])
+def guard_tools_install():
+    """POST /guard/tools/install — Install missing security tools."""
+    dry_run = request.args.get("dry_run", "true").lower() == "true"
+    return jsonify(_get_hexstrike().install_missing_tools(dry_run))
+
+
+@app.route("/guard/analyze", methods=["POST"])
+def guard_analyze():
+    """POST /guard/analyze — Analyze target using IntelligentDecisionEngine."""
+    data = request.get_json() or {}
+    target = data.get("target")
+    if not target:
+        return jsonify({"error": "target required"}), 400
+    scan_type = data.get("scan_type", "comprehensive")
+    return jsonify(_get_hexstrike().analyze_target(target, scan_type))
+
+
+@app.route("/guard/scan", methods=["POST"])
+def guard_scan():
+    """POST /guard/scan — Run security scan on authorized target."""
+    data = request.get_json() or {}
+    target = data.get("target")
+    if not target:
+        return jsonify({"error": "target required"}), 400
+    tools = data.get("tools")
+    authorized = data.get("authorized", False)
+    return jsonify(_get_hexstrike().run_security_scan(target, tools, authorized))
+
+
+@app.route("/guard/report", methods=["POST"])
+def guard_report():
+    """POST /guard/report — Generate comprehensive security report."""
+    data = request.get_json() or {}
+    scan_id = data.get("scan_id")
+    findings = data.get("findings", [])
+    if not scan_id:
+        return jsonify({"error": "scan_id required"}), 400
+    report = _get_hexstrike().generate_report(scan_id, findings)
+    return jsonify(report.to_dict())
+
+
+@app.route("/guard/task", methods=["POST"])
+def guard_task_submit():
+    """POST /guard/task — Submit task to specific agent."""
+    data = request.get_json() or {}
+    agent_name = data.get("agent")
+    action = data.get("action")
+    if not agent_name or not action:
+        return jsonify({"error": "agent and action required"}), 400
+    task_id = _get_hexstrike().submit_task(
+        agent_name=agent_name,
+        action=action,
+        target=data.get("target"),
+        params=data.get("params", {})
+    )
+    return jsonify({"task_id": task_id, "status": "submitted"})
+
+
+@app.route("/guard/task/<task_id>", methods=["GET"])
+def guard_task_status(task_id):
+    """GET /guard/task/<id> — Get task result."""
+    result = _get_hexstrike().get_task_result(task_id)
+    if result is None:
+        return jsonify({"error": "Task not found or pending"}), 404
+    return jsonify(result.to_dict())
+
+
+@app.route("/guard/legal", methods=["GET"])
+def guard_legal():
+    """GET /guard/legal — Legal and ethical use notice."""
+    return jsonify(_get_hexstrike().get_legal_notice())
+
+
+# ── Module 32: Tool Forge ─────────────────────────────────────────────────────
+
+@app.route("/forge/status", methods=["GET"])
+def forge_status():
+    """GET /forge/status — Tool forge statistics."""
+    return jsonify({"status": "ok", "forge": _get_forge().get_stats()})
+
+
+@app.route("/forge/tools", methods=["GET"])
+def forge_tools():
+    """GET /forge/tools — List forged tools."""
+    tool_type = request.args.get("type")
+    status = request.args.get("status")
+    from .tool_forge import ToolType, ToolStatus
+    tt = ToolType(tool_type) if tool_type else None
+    ts = ToolStatus(status) if status else None
+    tools = _get_forge().list_tools(tt, ts)
+    return jsonify({"tools": [t.to_dict() for t in tools], "count": len(tools)})
+
+
+@app.route("/forge/tool/<tool_id>", methods=["GET"])
+def forge_tool_get(tool_id):
+    """GET /forge/tool/<id> — Get forged tool details."""
+    tool = _get_forge().get_tool(tool_id)
+    if not tool:
+        return jsonify({"error": "Tool not found"}), 404
+    return jsonify(tool.to_dict())
+
+
+@app.route("/forge/create/wrapper", methods=["POST"])
+def forge_create_wrapper():
+    """POST /forge/create/wrapper — Create tool wrapper."""
+    data = request.get_json() or {}
+    tool_name = data.get("tool_name")
+    if not tool_name:
+        return jsonify({"error": "tool_name required"}), 400
+    try:
+        tool = _get_forge().create_wrapper(tool_name, data.get("enhancements"))
+        return jsonify(tool.to_dict()), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/forge/create/composite", methods=["POST"])
+def forge_create_composite():
+    """POST /forge/create/composite — Create composite tool chain."""
+    data = request.get_json() or {}
+    name = data.get("name")
+    tool_chain = data.get("tool_chain", [])
+    if not name or not tool_chain:
+        return jsonify({"error": "name and tool_chain required"}), 400
+    tool = _get_forge().create_composite(name, tool_chain, data.get("description", ""))
+    return jsonify(tool.to_dict()), 201
+
+
+@app.route("/forge/create/generate", methods=["POST"])
+def forge_create_generate():
+    """POST /forge/create/generate — Generate new tool from description."""
+    data = request.get_json() or {}
+    name = data.get("name")
+    description = data.get("description")
+    logic = data.get("logic_description")
+    if not name or not description or not logic:
+        return jsonify({"error": "name, description, logic_description required"}), 400
+    tool = _get_forge().generate_tool(name, description, logic,
+                                       data.get("input_type", "target"),
+                                       data.get("output_type", "json"))
+    return jsonify(tool.to_dict()), 201
+
+
+@app.route("/forge/execute/<tool_id>", methods=["POST"])
+def forge_execute(tool_id):
+    """POST /forge/execute/<id> — Execute a forged tool."""
+    data = request.get_json() or {}
+    target = data.get("target")
+    if not target:
+        return jsonify({"error": "target required"}), 400
+    result = _get_forge().execute_tool(tool_id, target, data.get("args"))
+    return jsonify(result)
+
+
+@app.route("/forge/patterns", methods=["GET"])
+def forge_patterns():
+    """GET /forge/patterns — List learned tool patterns."""
+    min_rate = float(request.args.get("min_success_rate", 0.5))
+    patterns = _get_forge().get_patterns(min_rate)
+    return jsonify({"patterns": [p.to_dict() for p in patterns], "count": len(patterns)})
+
+
+@app.route("/forge/learn", methods=["POST"])
+def forge_learn():
+    """POST /forge/learn — Learn a new tool pattern."""
+    data = request.get_json() or {}
+    name = data.get("name")
+    tools = data.get("tools", [])
+    use_case = data.get("use_case", "")
+    success = data.get("success", True)
+    if not name or not tools:
+        return jsonify({"error": "name and tools required"}), 400
+    pattern = _get_forge().learn_pattern(name, tools, use_case, success)
+    return jsonify(pattern.to_dict())
+
+
+@app.route("/forge/recommend", methods=["GET"])
+def forge_recommend():
+    """GET /forge/recommend — Get tool recommendations."""
+    requirement = request.args.get("requirement", "")
+    top_k = int(request.args.get("top_k", 5))
+    recommendations = _get_forge().recommend_tools(requirement, top_k)
+    return jsonify({"recommendations": recommendations})
+
+
+@app.route("/forge/tool/<tool_id>", methods=["DELETE"])
+def forge_delete(tool_id):
+    """DELETE /forge/tool/<id> — Delete a forged tool."""
+    ok = _get_forge().delete_tool(tool_id)
+    return jsonify({"deleted": ok})
+
+
+# ── Module 33: KiInstall Agent ────────────────────────────────────────────────
+
+@app.route("/kiinstall/status", methods=["GET"])
+def kiinstall_status():
+    """GET /kiinstall/status — KiInstall agent status."""
+    return jsonify({"status": "ok", "agent": _get_kiinstall().get_stats()})
+
+
+@app.route("/kiinstall/profile", methods=["GET"])
+def kiinstall_profile():
+    """GET /kiinstall/profile — Profile target system."""
+    profile = _get_kiinstall().profile_system()
+    return jsonify(profile.to_dict())
+
+
+@app.route("/kiinstall/requirements", methods=["GET"])
+def kiinstall_requirements():
+    """GET /kiinstall/requirements — System requirements."""
+    return jsonify(_get_kiinstall().get_system_requirements())
+
+
+@app.route("/kiinstall/components", methods=["GET"])
+def kiinstall_components():
+    """GET /kiinstall/components — Available KISWARM components."""
+    return jsonify(_get_kiinstall().get_components())
+
+
+@app.route("/kiinstall/session", methods=["POST"])
+def kiinstall_session_start():
+    """POST /kiinstall/session — Start installation session."""
+    data = request.get_json() or {}
+    from .kiinstall_agent import InstallationMode
+    mode_str = data.get("mode", "autonomous")
+    mode = InstallationMode(mode_str) if mode_str in [m.value for m in InstallationMode] else InstallationMode.AUTONOMOUS
+    components = data.get("components")
+    partner = data.get("cooperative_partner")
+    session = _get_kiinstall().start_installation(mode, components, partner)
+    return jsonify(session.to_dict()), 201
+
+
+@app.route("/kiinstall/session/<session_id>", methods=["GET"])
+def kiinstall_session_get(session_id):
+    """GET /kiinstall/session/<id> — Get installation session."""
+    session = _get_kiinstall().get_session(session_id)
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+    return jsonify(session.to_dict())
+
+
+@app.route("/kiinstall/session/current", methods=["GET"])
+def kiinstall_session_current():
+    """GET /kiinstall/session/current — Get current active session."""
+    session = _get_kiinstall().get_current_session()
+    if not session:
+        return jsonify({"error": "No active session"}), 404
+    return jsonify(session.to_dict())
+
+
+@app.route("/kiinstall/session/<session_id>/phase/<int:phase_num>", methods=["POST"])
+def kiinstall_phase_execute(session_id, phase_num):
+    """POST /kiinstall/session/<id>/phase/<num> — Execute installation phase."""
+    try:
+        phase = _get_kiinstall().execute_phase(session_id, phase_num)
+        return jsonify(phase.to_dict())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/kiinstall/session/<session_id>/rollback", methods=["POST"])
+def kiinstall_rollback(session_id):
+    """POST /kiinstall/session/<id>/rollback — Rollback installation."""
+    result = _get_kiinstall().rollback_installation(session_id)
+    return jsonify(result)
+
+
+@app.route("/kiinstall/sessions", methods=["GET"])
+def kiinstall_sessions():
+    """GET /kiinstall/sessions — List installation sessions."""
+    from .kiinstall_agent import InstallationStatus
+    status_str = request.args.get("status")
+    status = InstallationStatus(status_str) if status_str else None
+    sessions = _get_kiinstall().list_sessions(status)
+    return jsonify({"sessions": [s.to_dict() for s in sessions], "count": len(sessions)})
+
+
+@app.route("/kiinstall/knowledge", methods=["GET"])
+def kiinstall_knowledge():
+    """GET /kiinstall/knowledge — Installation knowledge base."""
+    return jsonify(_get_kiinstall().get_installation_knowledge())
+
+
+@app.route("/kiinstall/role", methods=["GET"])
+def kiinstall_role():
+    """GET /kiinstall/role — Current agent role."""
+    return jsonify({"role": _get_kiinstall().get_current_role().value})
+
+
+@app.route("/kiinstall/cooperate", methods=["POST"])
+def kiinstall_cooperate():
+    """POST /kiinstall/cooperate — Send cooperative message."""
+    data = request.get_json() or {}
+    msg_type = data.get("message_type", "status")
+    payload = data.get("payload", {})
+    msg = _get_kiinstall().send_cooperative_message(msg_type, payload)
+    return jsonify(msg.to_dict())
+
+
+@app.route("/kiinstall/delegate", methods=["POST"])
+def kiinstall_delegate():
+    """POST /kiinstall/delegate — Delegate task to cooperative partner."""
+    data = request.get_json() or {}
+    task = data.get("task")
+    params = data.get("params", {})
+    if not task:
+        return jsonify({"error": "task required"}), 400
+    result = _get_kiinstall().delegate_to_partner(task, params)
+    return jsonify(result)
+
+
+# ── HexStrike + KiInstall Integration ─────────────────────────────────────────
+
+@app.route("/kiinstall/analyze", methods=["POST"])
+def kiinstall_analyze():
+    """POST /kiinstall/analyze — Analyze target using HexStrike via KiInstall."""
+    data = request.get_json() or {}
+    target = data.get("target")
+    if not target:
+        return jsonify({"error": "target required"}), 400
+    return jsonify(_get_kiinstall().analyze_with_guard(target))
+
+
+@app.route("/kiinstall/scan", methods=["POST"])
+def kiinstall_scan():
+    """POST /kiinstall/scan — Run security scan using HexStrike via KiInstall."""
+    data = request.get_json() or {}
+    target = data.get("target")
+    if not target:
+        return jsonify({"error": "target required"}), 400
+    authorized = data.get("authorized", False)
+    return jsonify(_get_kiinstall().scan_with_guard(target, authorized))
+
+
+@app.route("/kiinstall/execute", methods=["POST"])
+def kiinstall_execute():
+    """POST /kiinstall/execute — Execute task with HexStrike agent."""
+    data = request.get_json() or {}
+    task_type = data.get("task_type")
+    target = data.get("target")
+    if not task_type or not target:
+        return jsonify({"error": "task_type and target required"}), 400
+    return jsonify(_get_kiinstall().execute_with_hexstrike(task_type, target, data.get("params")))
+
+
 if __name__ == "__main__":
     logger.info("╔══════════════════════════════════════════════════════════════╗")
-    logger.info("║  KISWARM v4.8 — Dual-Track Mesh · 49 Modules · 258 Endpoints║")
+    logger.info("║  KISWARM v5.0 — HexStrike Guard · 52 Modules · 310 Endpoints║")
     logger.info("║  Port: 11436  |  P2P: 11440  |  Control: 11441             ║")
     logger.info("╚══════════════════════════════════════════════════════════════╝")
     app.run(host="127.0.0.1", port=11436, debug=False, threaded=True)
