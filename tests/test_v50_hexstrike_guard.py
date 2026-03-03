@@ -17,8 +17,8 @@ import sys
 import tempfile
 import time
 
-# Add sentinel module to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add sentinel module to path - fix for proper import
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "python"))
 
 from sentinel.hexstrike_guard import (
     HexStrikeGuard, ToolRegistry, HexStrikeAgent,
