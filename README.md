@@ -342,6 +342,79 @@ MIT License — Free to use, modify, and distribute globally.
 
 ---
 
+## 🧠 Model Training Infrastructure
+
+KISWARM v5.1 includes a complete model training infrastructure for creating specialized AI agents from your pretrained Ollama models.
+
+### Training Directory Structure
+```
+training/
+├── MODEL_ROLE_MAPPING.md      # Complete model-to-role assignments
+├── modelfiles/                 # Ollama Modelfiles for each role
+│   ├── orchestrator.Modelfile
+│   ├── security.Modelfile
+│   ├── ciec.Modelfile
+│   ├── tcs.Modelfile
+│   ├── knowledge.Modelfile
+│   └── installer.Modelfile
+├── scripts/
+│   └── train_all_models.sh     # Automated training script
+├── prompts/
+│   ├── qwen_cli_training.md    # Qwen CLI training prompts
+│   └── gemini_cli_training.md  # Gemini CLI training prompts
+└── context/
+    ├── kiswarm_full_context.txt    # Complete system knowledge
+    └── kiswarm_safety_rules.txt    # Constitutional constraints
+```
+
+### Role-to-Model Mapping
+
+| Role | Primary Model | Size | Purpose |
+|------|---------------|------|---------|
+| **ORCHESTRATOR** | huihui_ai_orchestrator_8b | 5.0 GB | System coordination |
+| **SECURITY** | huihui_ai_glm_4_7_flash | 18 GB | HexStrike Guard leader |
+| **CIEC** | dengcao_ERNIE_4_5_21B | 13 GB | Adaptive intelligence |
+| **TCS** | qwen2_5_coder_14b | 9.0 GB | Energy operations |
+| **KNOWLEDGE** | qwen2_5_14b | 9.0 GB | RAG & memory |
+| **INSTALLER** | llama3_groq_tool_use | 4.7 GB | Deployment |
+
+### Quick Training
+```bash
+# Full training (all 25 models)
+cd ~/KISWARM/training
+./scripts/train_all_models.sh --full
+
+# Primary models only (6 models)
+./scripts/train_all_models.sh --primary
+
+# Test existing models
+./scripts/train_all_models.sh --test
+```
+
+### Manual Model Creation
+```bash
+# Create orchestrator model
+ollama create kiswarm-orchestrator -f modelfiles/orchestrator.Modelfile
+
+# Create security model
+ollama create kiswarm-security -f modelfiles/security.Modelfile
+
+# Test model
+ollama run kiswarm-orchestrator "Status report"
+```
+
+### Model Registry
+See `training/MODEL_ROLE_MAPPING.md` for complete model assignments including:
+- Primary models (6 roles)
+- Backup models (6 roles)
+- Fast models (6 roles)
+- Specialized models (6 roles)
+- Embedding model (1 role)
+
+**Total: 25 trained models for KISWARM v5.1**
+
+---
+
 ## 🎯 Design Philosophy
 
 ### The Digital Pulse
